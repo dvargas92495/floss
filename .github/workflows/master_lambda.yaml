@@ -1,0 +1,34 @@
+name: Push Lambdas to Master
+on:
+  push:
+    branches: master
+    paths:
+      - "src/lambdas/**"
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.LAMBDA_AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.LAMBDA_AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: us-east-1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 12.16.1
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.16.1
+      - name: install
+        run: npm install
+      - name: Build
+        run: npm run build:lambda
+      - name: Upload
+        run: |
+          for filename in out/*.js; do
+              LAMBDA=$(basename "$filename" .js)
+              zip -jq $LAMBDA.zip ./out/$LAMBDA.js
+              MODIFIED=$(aws lambda update-function-code --function-name "floss_${LAMBDA}" --publish --zip-file "fileb://${LAMBDA}.zip" --query "LastModified" --output text)  
+              rm $LAMBDA.zip
+              echo "Function $LAMBDA successfully updated at $MODIFIED"
+          done
