@@ -3,7 +3,10 @@ on:
   push:
     branches: master
     paths:
-      - "src/client/**"
+      - "components/**"
+      - "interfaces/**"
+      - "pages/**"
+      - "utils/**"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.DEPLOY_AWS_ACCESS_KEY_ID }}

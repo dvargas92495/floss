@@ -32,7 +32,9 @@ module "aws-serverless-backend" {
     version = "1.0.0"
 
     api_name = "floss"
-    paths = []
+    paths = [
+        ""
+    ]
     tags = {
         Application = "Floss"
     }

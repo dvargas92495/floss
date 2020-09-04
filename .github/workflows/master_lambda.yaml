@@ -3,7 +3,7 @@ on:
   push:
     branches: master
     paths:
-      - "src/lambdas/**"
+      - "lambdas/**"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.LAMBDA_AWS_ACCESS_KEY_ID }}
