@@ -13,10 +13,6 @@ type Props = {
 const WithStaticProps = ({ items }: Props) => (
   <Layout title="Issues List | Floss">
     <h1>Issues List</h1>
-    <p>
-      Example fetching data from inside <code>getStaticProps()</code>.
-    </p>
-    <p>You are currently on: /issues</p>
     <List items={items} />
     <p>
       <Link href="/">

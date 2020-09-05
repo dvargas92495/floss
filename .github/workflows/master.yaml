@@ -27,7 +27,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Upload
-        run: aws s3 sync .next s3://floss.davidvargas.me
+        run: aws s3 sync .next s3://floss.davidvargas.me --delete
       - name: Invalidate Cache
         run: |
           CLOUDFRONT_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[*].{Alias:Aliases.Items[0],Id:Id}[?Alias=='floss.davidvargas.me'].Id" --output text)
