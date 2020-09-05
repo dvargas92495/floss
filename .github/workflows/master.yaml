@@ -1,4 +1,4 @@
-name: Push Extensions to Master
+name: Deploy to Production from Master
 on:
   push:
     branches: master
@@ -27,7 +27,7 @@ jobs:
       - name: Build
         run: npm run build
       - name: Upload
-        run: aws s3 sync build s3://floss.davidvargas.me/master
+        run: aws s3 sync build s3://floss.davidvargas.me
       - name: Invalidate Cache
         run: |
           CLOUDFRONT_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[*].{Alias:Aliases.Items[0],Id:Id}[?Alias=='floss.davidvargas.me'].Id" --output text)
