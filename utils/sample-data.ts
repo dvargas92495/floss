@@ -1,9 +1,5 @@
-import { User } from '../interfaces'
+import { Issue } from "../interfaces";
 
-/** Dummy user data. */
-export const sampleUserData: User[] = [
-  { id: 101, name: 'Alice' },
-  { id: 102, name: 'Bob' },
-  { id: 103, name: 'Caroline' },
-  { id: 104, name: 'Dave' },
-]
+export const sampleIssueData: Issue[] = [
+  { repository: "nhn/tui.editor", issue: 485, reward: 50, id: 1 },
+];
