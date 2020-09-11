@@ -1,10 +1,8 @@
-import { GetStaticProps } from "next";
-import Link from "next/link";
-
 import { Issue } from "../../interfaces";
-import { sampleIssueData } from "../../utils/sample-data";
 import Layout from "../../components/Layout";
 import List from "../../components/List";
+import { Typography } from "@material-ui/core";
+import { GetStaticProps } from "next";
 
 type Props = {
   items: Issue[];
@@ -12,19 +10,19 @@ type Props = {
 
 const WithStaticProps = ({ items }: Props) => (
   <Layout title="Issues List | Floss">
-    <h1>Issues List</h1>
+    <Typography variant="h1">Issues List</Typography>
     <List items={items} />
-    <p>
-      <Link href="/">
-        <a>Go home</a>
-      </Link>
-    </p>
   </Layout>
 );
 
 export const getStaticProps: GetStaticProps = async () => {
-  const items: Issue[] = sampleIssueData;
-  return { props: { items } };
+  const res = await fetch(
+    `https://${process.env.REST_API_ID}.execute-api.us-east-1.amazonaws.com/production/`
+  );
+  const items = await res.json();
+  return {
+    props: { items },
+  };
 };
 
 export default WithStaticProps;
