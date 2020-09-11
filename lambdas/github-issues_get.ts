@@ -8,6 +8,7 @@ const headers = {
 export const handler = () =>
   axios(`https://api.github.com/issues?filter=subscribed&state=open`, {
     headers: {
+      Accept: "application/vnd.github.v3+json",
       Authorization: `Basic ${Buffer.from(
         `dvargas92495:${process.env.PERSONAL_ACCESS_TOKEN}`
       ).toString("base64")}`,

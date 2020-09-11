@@ -1,4 +1,4 @@
-name: Push Lambdas to Master
+name: Deploy Lambdas to Production
 on:
   push:
     branches: master
@@ -9,6 +9,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.LAMBDA_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.LAMBDA_AWS_SECRET_ACCESS_KEY }}
   AWS_DEFAULT_REGION: us-east-1
+  PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
 jobs:
   deploy:

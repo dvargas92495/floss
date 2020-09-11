@@ -1,27 +1,33 @@
-import { Issue } from "../../interfaces";
 import Layout from "../../components/Layout";
 import List from "../../components/List";
 import { Typography } from "@material-ui/core";
 import { GetStaticProps } from "next";
+import { useEffect, useState } from "react";
 
-type Props = {
-  items: Issue[];
+const IssueList = () => {
+  const [items, setItems] = useState([]);
+  useEffect(() => {
+    fetch(
+      `https://${process.env.NEXT_PUBLIC_REST_API_ID}.execute-api.us-east-1.amazonaws.com/production/`
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        setItems(res);
+      });
+  }, [setItems]);
+  return <List items={items} />;
 };
 
-const WithStaticProps = ({ items }: Props) => (
+const WithStaticProps = () => (
   <Layout title="Issues List | Floss">
     <Typography variant="h1">Issues List</Typography>
-    <List items={items} />
+    <IssueList />
   </Layout>
 );
 
 export const getStaticProps: GetStaticProps = async () => {
-  const res = await fetch(
-    `https://${process.env.REST_API_ID}.execute-api.us-east-1.amazonaws.com/production/`
-  );
-  const items = await res.json();
   return {
-    props: { items },
+    props: { items: [] },
   };
 };
 

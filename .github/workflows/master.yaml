@@ -25,7 +25,7 @@ jobs:
       - name: install
         run: npm install
       - name: Setup
-        run: echo "REST_API_ID=${{ secrets.REST_API_ID }}" > .env.local
+        run: echo "NEXT_PUBLIC_REST_API_ID=${{ secrets.REST_API_ID }}" > .env.local
       - name: Build
         run: npm run build
       - name: Upload
