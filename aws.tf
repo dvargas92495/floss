@@ -12,6 +12,10 @@ variable "secret" {
     type = string
 }
 
+variable "github_token" {
+    type = string
+}
+
 provider "aws" {
     region = "us-east-1"
 }
