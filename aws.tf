@@ -29,7 +29,7 @@ module "aws-static-site" {
 
 module "aws-serverless-backend" {
     source  = "dvargas92495/serverless-backend/aws"
-    version = "1.0.0"
+    version = "1.1.0"
 
     api_name = "floss"
     paths = [
@@ -40,23 +40,36 @@ module "aws-serverless-backend" {
     }
 }
 
-/*
-https://github.com/dvargas92495/roam-js-extensions/issues/1
-
 provider "github" {
-    organization = "dvargas92495"
-    individual = true
+    owner = "dvargas92495"
 }
 
 resource "github_actions_secret" "deploy_aws_access_key" {
   repository       = "floss"
-  secret_name      = "DEPLOY_AWS_ACCESS_KEY"
-  plaintext_value  = module.terraform-aws-s3-static-site.deploy-id
+  secret_name      = "DEPLOY_AWS_ACCESS_KEY_ID"
+  plaintext_value  = module.aws-static-site.deploy-id
 }
 
 resource "github_actions_secret" "deploy_aws_access_secret" {
   repository       = "floss"
-  secret_name      = "DEPLOY_AWS_ACCESS_SECRET"
-  plaintext_value  = module.terraform-aws-s3-static-site.deploy-secret
+  secret_name      = "DEPLOY_AWS_SECRET_ACCESS_KEY"
+  plaintext_value  = module.aws-static-site.deploy-secret
 }
-*/
+
+resource "github_actions_secret" "lambda_aws_access_key" {
+  repository       = "floss"
+  secret_name      = "LAMBDA_AWS_ACCESS_KEY_ID"
+  plaintext_value  = module.aws-serverless-backend.access_key
+}
+
+resource "github_actions_secret" "lambda_aws_access_secret" {
+  repository       = "floss"
+  secret_name      = "LAMBDA_AWS_SECRET_ACCESS_KEY"
+  plaintext_value  = module.aws-serverless-backend.secret_key
+}
+
+resource "github_actions_secret" "rest_api_id" {
+  repository       = "floss"
+  secret_name      = "REST_API_ID"
+  plaintext_value  = module.aws-serverless-backend.rest_api_id
+}
