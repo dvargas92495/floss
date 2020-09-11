@@ -42,6 +42,7 @@ module "aws-serverless-backend" {
 
 provider "github" {
     owner = "dvargas92495"
+    token = var.github_token
 }
 
 resource "github_actions_secret" "deploy_aws_access_key" {
@@ -72,4 +73,10 @@ resource "github_actions_secret" "rest_api_id" {
   repository       = "floss"
   secret_name      = "REST_API_ID"
   plaintext_value  = module.aws-serverless-backend.rest_api_id
+}
+
+resource "github_actions_secret" "personal_access_token" {
+  repository       = "floss"
+  secret_name      = "PERSONAL_ACCESS_TOKEN"
+  plaintext_value  = var.github_token
 }
