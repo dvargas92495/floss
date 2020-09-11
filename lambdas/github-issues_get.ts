@@ -6,7 +6,7 @@ const headers = {
 };
 
 export const handler = () =>
-  axios(`https://api.github.com/users/dvargas92495/subscriptions`, {
+  axios(`https://api.github.com/issues?state=open`, {
     headers: {
       Accept: "application/vnd.github.v3+json",
       Authorization: `Basic ${Buffer.from(
