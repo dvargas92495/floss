@@ -10,7 +10,9 @@ const IndexPage = () => (
       <i>FreeLance Open Source Software</i>
     </Typography>
     <Link href="/issues">
-      <Button color="secondary">SUBMIT ISSUE</Button>
+      <Button color="secondary" variant="contained">
+        VIEW ISSUES
+      </Button>
     </Link>
     <Typography variant="body1">
       Small software companies rely heavily on open source software, but often
