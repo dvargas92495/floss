@@ -3,7 +3,7 @@ import { v4 } from "uuid";
 import AWS from "aws-sdk";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
-const dynamo = new AWS.DynamoDB({ apiVersion: "2006-03-01" });
+const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
 
 const headers = {
   "Access-Control-Allow-Origin": "*",
@@ -40,6 +40,11 @@ export const handler = async (event: APIGatewayEvent) => {
         dueDate,
         uuid,
       }),
+      headers,
+    }))
+    .catch((e) => ({
+      statusCode: 200,
+      body: e.message,
       headers,
     }));
 };
