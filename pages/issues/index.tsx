@@ -49,7 +49,7 @@ const CreateGithubIssueForm = ({
         .post(`${API_URL}/contract`, {
           link,
           reward,
-          dueDate,
+          dueDate: format(dueDate, "yyyy-MM-dd"),
         })
         .then((r) => console.log(r.data))
         .then(handleClose),

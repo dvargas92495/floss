@@ -33,7 +33,7 @@ module "aws-static-site" {
 
 module "aws-serverless-backend" {
     source  = "dvargas92495/serverless-backend/aws"
-    version = "1.2.0"
+    version = "1.2.1"
 
     api_name = "floss"
     paths = [
@@ -50,6 +50,11 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "uuid"
   range_key      = "reward"
+
+  attribute {
+    name = "uuid"
+    type = "S"
+  }
 
   attribute {
     name = "reward"
