@@ -9,6 +9,7 @@ const entry = Object.fromEntries(
 
 module.exports = {
   target: "node",
+  externals: ["aws-sdk"],
   entry,
   resolve: {
     extensions: [".ts", ".js"],
