@@ -29,7 +29,7 @@ export const handler = async (event: APIGatewayEvent) => {
           S: dueDate,
         },
       },
-      TableName: "FlossContract",
+      TableName: "FlossContracts",
     })
     .promise()
     .then(() => ({
