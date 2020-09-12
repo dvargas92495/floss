@@ -23,7 +23,7 @@ export const handler = async (event: APIGatewayEvent) => {
           S: link,
         },
         reward: {
-          N: reward,
+          N: `${reward}`,
         },
         dueDate: {
           S: dueDate,
