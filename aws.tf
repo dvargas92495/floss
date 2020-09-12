@@ -37,7 +37,8 @@ module "aws-serverless-backend" {
 
     api_name = "floss"
     paths = [
-        "github-issues/get"
+        "github-issues/get",
+        "contract/post"
     ]
     tags = {
         Application = "Floss"
