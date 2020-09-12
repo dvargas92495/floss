@@ -13,7 +13,7 @@ export const handler = (event:APIGatewayEvent) => {
     dueDate
   } = JSON.parse(event.body || "{}");
   return {
-    status: 200,
+    statusCode: 200,
     body: JSON.stringify({
       link, reward, dueDate, uuid: `CONTRACT-${v4()}`
     }),
