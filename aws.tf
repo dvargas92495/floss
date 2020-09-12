@@ -52,18 +52,8 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   range_key      = "reward"
 
   attribute {
-    name = "link"
-    type = "S"
-  }
-
-  attribute {
     name = "reward"
     type = "N"
-  }
-
-  attribute {
-    name = "dueDate"
-    type = "S"
   }
 
   tags = {
