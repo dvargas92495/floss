@@ -45,6 +45,32 @@ module "aws-serverless-backend" {
     }
 }
 
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = "FlossContracts"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "uuid"
+  range_key      = "reward"
+
+  attribute {
+    name = "link"
+    type = "S"
+  }
+
+  attribute {
+    name = "reward"
+    type = "N"
+  }
+
+  attribute {
+    name = "dueDate"
+    type = "S"
+  }
+
+  tags = {
+    Application = "Floss"
+  }
+}
+
 provider "github" {
     owner = "dvargas92495"
     token = var.github_token

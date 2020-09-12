@@ -12,6 +12,7 @@
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@truffle/contract": "^4.2.21",
+    "aws-sdk": "^2.751.0",
     "axios": "^0.20.0",
     "date-fns": "^2.16.1",
     "next": "latest",
