@@ -15,7 +15,7 @@ export const handler = async () =>
       IndexName: "reward-lifecycle-index",
       ExpressionAttributeValues: {
         ":r": {
-          S: "100",
+          N: "100",
         },
         ":s": {
           S: "active",
