@@ -11,7 +11,7 @@ export const handler = async () =>
   dynamo
     .query({
       TableName: "FlossContracts",
-      KeyConditionExpression: "reward = :r and status := :s",
+      KeyConditionExpression: "reward = :r and status = :s",
       ExpressionAttributeValues: {
         ":r": {
           S: "100",
