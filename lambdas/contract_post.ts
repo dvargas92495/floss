@@ -28,7 +28,7 @@ export const handler = async (event: APIGatewayEvent) => {
         dueDate: {
           S: dueDate,
         },
-        status: {
+        lifecycle: {
           S: "active",
         },
       },
@@ -42,6 +42,7 @@ export const handler = async (event: APIGatewayEvent) => {
         reward,
         dueDate,
         uuid,
+        lifecycle: "active",
       }),
       headers,
     }))

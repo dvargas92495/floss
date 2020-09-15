@@ -62,16 +62,16 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   }
 
   attribute {
-    name = "status"
+    name = "lifecycle"
     type = "S"
   }
 
   global_secondary_index {
     hash_key           = "reward"
-    name               = "reward-status-index"
+    name               = "reward-lifecycle-index"
     non_key_attributes = []
     projection_type    = "ALL"
-    range_key          = "status"
+    range_key          = "lifecycle"
     read_capacity      = 0
     write_capacity     = 0
   }
