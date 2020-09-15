@@ -50,7 +50,6 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   name           = "FlossContracts"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "uuid"
-  range_key      = "reward"
 
   attribute {
     name = "uuid"
@@ -60,6 +59,21 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   attribute {
     name = "reward"
     type = "N"
+  }
+
+  attribute {
+    name = "status"
+    type = "S"
+  }
+
+  global_secondary_index {
+    hash_key           = "reward"
+    name               = "reward-status-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    range_key          = "status"
+    read_capacity      = 0
+    write_capacity     = 0
   }
 
   tags = {

@@ -28,6 +28,9 @@ export const handler = async (event: APIGatewayEvent) => {
         dueDate: {
           S: dueDate,
         },
+        status: {
+          S: "active",
+        },
       },
       TableName: "FlossContracts",
     })
