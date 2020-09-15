@@ -11,10 +11,13 @@ export const handler = async () =>
   dynamo
     .query({
       TableName: "FlossContracts",
-      KeyConditionExpression: "reward = :a",
+      KeyConditionExpression: "reward = :r and status := :s",
       ExpressionAttributeValues: {
-        ":a": {
+        ":r": {
           S: "100",
+        },
+        ":s:": {
+          S: "active",
         },
       },
     })
