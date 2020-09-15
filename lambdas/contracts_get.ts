@@ -25,7 +25,7 @@ export const handler = async () =>
     .promise()
     .then((r) => ({
       statusCode: 200,
-      body: JSON.stringify(r.Items?.map(i => ({
+      body: JSON.stringify((r.Items || []).map(i => ({
         uuid: i.uuid.S,
         reward: i.uuid.N,
         link: i.link.S,
