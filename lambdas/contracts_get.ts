@@ -12,6 +12,7 @@ export const handler = async () =>
     .query({
       TableName: "FlossContracts",
       KeyConditionExpression: "reward = :r and lifecycle = :s",
+      IndexName: "reward-lifecycle-index",
       ExpressionAttributeValues: {
         ":r": {
           S: "100",
