@@ -19,7 +19,7 @@ const API_URL = `https://${process.env.NEXT_PUBLIC_REST_API_ID}.execute-api.us-e
 const IssueList = () => {
   const [items, setItems] = useState([]);
   useEffect(() => {
-    fetch(`${API_URL}/github-issues`)
+    fetch(`${API_URL}/contracts`)
       .then((res) => res.json())
       .then((res) => {
         setItems(

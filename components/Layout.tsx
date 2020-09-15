@@ -1,7 +1,6 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import Head from "next/head";
-import Web3 from "web3";
 import { provider } from "web3-core";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
