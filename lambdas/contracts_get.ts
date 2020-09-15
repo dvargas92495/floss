@@ -27,7 +27,7 @@ export const handler = async () =>
       statusCode: 200,
       body: JSON.stringify((r.Items || []).map(i => ({
         uuid: i.uuid.S,
-        reward: i.uuid.N,
+        reward: i.reward.N,
         link: i.link.S,
         lifecycle: i.lifecycle.S,
         dueDate: i.dueDate.S,

@@ -1,6 +1,7 @@
 export type Issue = {
-  repository: string;
-  issue: number;
+  dueDate: string;
+  lifecycle: string;
+  link: string;
   reward: number;
-  id: number;
+  uuid: string;
 };

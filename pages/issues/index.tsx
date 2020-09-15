@@ -21,16 +21,7 @@ const IssueList = () => {
   useEffect(() => {
     fetch(`${API_URL}/contracts`)
       .then((res) => res.json())
-      .then((res) => {
-        setItems(
-          res.map((item: any) => ({
-            repository: item.repository.full_name,
-            id: item.id,
-            issue: item.number,
-            reward: 0,
-          }))
-        );
-      });
+      .then((res) => setItems(res));
   }, [setItems]);
   return <List items={items} />;
 };
