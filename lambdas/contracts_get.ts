@@ -16,7 +16,7 @@ export const handler = async () =>
         ":r": {
           S: "100",
         },
-        ":s:": {
+        ":s": {
           S: "active",
         },
       },
