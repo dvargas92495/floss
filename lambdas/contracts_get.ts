@@ -1,13 +1,6 @@
-import AWS from "aws-sdk";
+import { dynamo, headers } from "../utils/lambda";
 
-AWS.config = new AWS.Config({ region: "us-east-1" });
-const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
-const headers = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
-};
-
-export const handler = async () =>
+export const getActiveContracts = () =>
   dynamo
     .query({
       TableName: "FlossContracts",
@@ -23,16 +16,20 @@ export const handler = async () =>
       },
     })
     .promise()
+    .then((r) =>
+      r.Items?.map((i) => ({
+        uuid: i.uuid.S,
+        reward: i.reward.N,
+        link: i.link.S,
+        dueDate: i.dueDate.S,
+      })) || []
+    );
+
+export const handler = async () =>
+  getActiveContracts()
     .then((r) => ({
       statusCode: 200,
-      body: JSON.stringify(
-        (r.Items || []).map((i) => ({
-          uuid: i.uuid.S,
-          reward: i.reward.N,
-          link: i.link.S,
-          dueDate: i.dueDate.S,
-        }))
-      ),
+      body: JSON.stringify(r),
       headers,
     }))
     .catch((e) => ({
