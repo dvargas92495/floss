@@ -127,12 +127,11 @@ data "aws_iam_policy_document" "deploy_policy" {
 }
 
 data "aws_iam_user" "deploy_lambda" {
-  name  = "floss-lambda"
-  path  = "/"
+  user_name  = "floss-lambda"
 }
 
 resource "aws_iam_user_policy" "deploy_lambda" {
-  user   = aws_iam_user.deploy_lambda.name
+  user   = data.aws_iam_user.deploy_lambda.name
   policy = data.aws_iam_policy_document.deploy_policy.json
 }
 
