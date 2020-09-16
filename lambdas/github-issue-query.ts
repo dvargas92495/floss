@@ -12,5 +12,6 @@ export const handler = () => getActiveContracts().then(r => {
     console.log(completions);
     console.log("Contracts that are still active:");
     console.log(actives);
+    console.log("Done!");
   });
 })

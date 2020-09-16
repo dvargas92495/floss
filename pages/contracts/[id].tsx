@@ -1,26 +1,42 @@
 import { Issue } from "../../interfaces";
 import Layout from "../../components/Layout";
-import ListDetail from "../../components/ListDetail";
+import React, { useEffect, useState } from "react";
+import Typography from "@material-ui/core/Typography";
+import { API_URL } from "../../utils/client";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import Button from "@material-ui/core/Button";
 
-type Props = {
-  item?: Issue;
-  errors?: string;
-};
+const StaticPropsDetail = () => {
+  const router = useRouter();
 
-const StaticPropsDetail = ({ item, errors }: Props) => {
-  if (errors) {
-    return (
-      <Layout title="Error | Floss">
-        <p>
-          <span style={{ color: "red" }}>Error:</span> {errors}
-        </p>
-      </Layout>
-    );
-  }
-
+  const { id } = router.query;
+  const [contract, setContract] = useState<Issue>();
+  useEffect(() => {
+    fetch(`${API_URL}/contract?uuid=${id}`)
+      .then((res) => res.json())
+      .then((res) => setContract(res));
+  }, [setContract]);
   return (
-    <Layout title={`${item ? item.link : "Issue Detail"} | Floss`}>
-      {item && <ListDetail item={item} />}
+    <Layout title={`Contract Detail | Floss`}>
+      {contract ? (
+        <>
+          <Typography variant={"h4"}>
+            ${contract.reward} - {contract.link} -{" "}
+            {contract?.lifecycle?.toUpperCase()}
+          </Typography>
+          <Typography variant={"subtitle1"}>
+            Due on: {contract.dueDate}
+          </Typography>
+        </>
+      ) : (
+        <Typography variant={"body2"}>Loading...</Typography>
+      )}
+      <Link href="/contracts">
+        <Button color="secondary" variant="contained">
+          VIEW CONTRACTS
+        </Button>
+      </Link>
     </Layout>
   );
 };

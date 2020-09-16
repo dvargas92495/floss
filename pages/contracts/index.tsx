@@ -4,7 +4,6 @@ import Typography from "@material-ui/core/Typography";
 import axios from "axios";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
-import { GetStaticProps } from "next";
 import React, { useEffect, useState, useCallback } from "react";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -14,10 +13,9 @@ import DialogActions from "@material-ui/core/DialogActions";
 import addMonths from "date-fns/addMonths";
 import format from "date-fns/format";
 import Paper from "@material-ui/core/Paper";
+import { API_URL } from "../../utils/client";
 
-const API_URL = `https://${process.env.NEXT_PUBLIC_REST_API_ID}.execute-api.us-east-1.amazonaws.com/production`;
-
-const IssueList = () => {
+const ContractList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
@@ -129,17 +127,11 @@ const CreateGithubIssueDialog = () => {
 };
 
 const WithStaticProps = () => (
-  <Layout title="Issues List | Floss">
-    <Typography variant="h1">Issues List</Typography>
-    <IssueList />
+  <Layout title="Contract List | Floss">
+    <Typography variant="h1">Contract List</Typography>
+    <ContractList />
     <CreateGithubIssueDialog />
   </Layout>
 );
-
-export const getStaticProps: GetStaticProps = async () => {
-  return {
-    props: { items: [] },
-  };
-};
 
 export default WithStaticProps;
