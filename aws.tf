@@ -114,7 +114,7 @@ resource "aws_lambda_permission" "allow_query" {
 
 resource "aws_cloudwatch_event_target" "trigger_scheduler" {
   rule      = aws_cloudwatch_event_rule.trigger_query.name
-  arn       = aws_lambda_function.scheduler.arn
+  arn       = aws_lambda_function.github_issue_query.arn
 }
 
 provider "github" {
