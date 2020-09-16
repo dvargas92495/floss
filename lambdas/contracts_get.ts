@@ -25,13 +25,14 @@ export const handler = async () =>
     .promise()
     .then((r) => ({
       statusCode: 200,
-      body: JSON.stringify((r.Items || []).map(i => ({
-        uuid: i.uuid.S,
-        reward: i.reward.N,
-        link: i.link.S,
-        lifecycle: i.lifecycle.S,
-        dueDate: i.dueDate.S,
-      }))),
+      body: JSON.stringify(
+        (r.Items || []).map((i) => ({
+          uuid: i.uuid.S,
+          reward: i.reward.N,
+          link: i.link.S,
+          dueDate: i.dueDate.S,
+        }))
+      ),
       headers,
     }))
     .catch((e) => ({

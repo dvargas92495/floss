@@ -9,9 +9,9 @@ const IndexPage = () => (
     <Typography variant="subtitle1">
       <i>FreeLance Open Source Software</i>
     </Typography>
-    <Link href="/issues">
+    <Link href="/contracts">
       <Button color="secondary" variant="contained">
-        VIEW ISSUES
+        VIEW CONTRACTS
       </Button>
     </Link>
     <Typography variant="body1">

@@ -1,11 +1,11 @@
 import Layout from "../../components/Layout";
-import List from "../../components/List";
+import List from "../../components/ContractList";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import { GetStaticProps } from "next";
-import { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
@@ -13,17 +13,28 @@ import TextField from "@material-ui/core/TextField";
 import DialogActions from "@material-ui/core/DialogActions";
 import addMonths from "date-fns/addMonths";
 import format from "date-fns/format";
+import Paper from "@material-ui/core/Paper";
 
 const API_URL = `https://${process.env.NEXT_PUBLIC_REST_API_ID}.execute-api.us-east-1.amazonaws.com/production`;
 
 const IssueList = () => {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     fetch(`${API_URL}/contracts`)
       .then((res) => res.json())
-      .then((res) => setItems(res));
-  }, [setItems]);
-  return <List items={items} />;
+      .then((res) => setItems(res))
+      .finally(() => setLoading(false));
+  }, [setItems, setLoading]);
+  return (
+    <Paper variant={"outlined"}>
+    {loading ? (
+    <Typography variant={"body2"}>Loading...</Typography>
+  ) : (
+    <List items={items} />
+  )}
+  </Paper>
+  );
 };
 
 const CreateGithubIssueForm = ({
@@ -42,7 +53,6 @@ const CreateGithubIssueForm = ({
           reward,
           dueDate: format(dueDate, "yyyy-MM-dd"),
         })
-        .then((r) => console.log(r.data))
         .then(handleClose),
     [handleClose, link, reward, dueDate]
   );
