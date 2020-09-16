@@ -116,6 +116,26 @@ resource "aws_cloudwatch_event_target" "trigger_scheduler" {
   arn       = aws_lambda_function.github_issue_query.arn
 }
 
+data "aws_iam_policy_document" "deploy_policy" {
+    statement {
+      actions = [
+        "lambda:UpdateFunctionCode"
+      ]
+
+      resources = [aws_lambda_function.github_issue_query.arn]
+    }
+}
+
+data "aws_iam_user" "deploy_lambda" {
+  name  = "floss-lambda"
+  path  = "/"
+}
+
+resource "aws_iam_user_policy" "deploy_lambda" {
+  user   = aws_iam_user.deploy_lambda.name
+  policy = data.aws_iam_policy_document.deploy_policy.json
+}
+
 provider "github" {
     owner = "dvargas92495"
     token = var.github_token
