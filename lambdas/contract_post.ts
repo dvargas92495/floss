@@ -44,12 +44,12 @@ export const handler = async (event: APIGatewayEvent) => {
             }))
             .catch((e) => ({
               statusCode: 500,
-              body: e.message,
+              body: JSON.stringify({ message: e.message }),
               headers,
             }))
         : {
-            statusCode: 500,
-            body: `Issue ${link} is not open`,
+            statusCode: 400,
+            body: JSON.stringify({ message: `Issue ${link} is not open` }),
             headers,
           }
   );

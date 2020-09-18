@@ -26,12 +26,12 @@ const ContractList = () => {
   }, [setItems, setLoading]);
   return (
     <Paper variant={"outlined"}>
-    {loading ? (
-    <Typography variant={"body2"}>Loading...</Typography>
-  ) : (
-    <List items={items} />
-  )}
-  </Paper>
+      {loading ? (
+        <Typography variant={"body2"}>Loading...</Typography>
+      ) : (
+        <List items={items} />
+      )}
+    </Paper>
   );
 };
 
@@ -43,6 +43,7 @@ const CreateGithubIssueForm = ({
   const [link, setLink] = useState("");
   const [reward, setReward] = useState(100);
   const [dueDate, setDueDate] = useState(addMonths(new Date(), 1));
+  const [error, setError] = useState("");
   const saveIssue = useCallback(
     () =>
       axios
@@ -51,8 +52,12 @@ const CreateGithubIssueForm = ({
           reward,
           dueDate: format(dueDate, "yyyy-MM-dd"),
         })
-        .then(handleClose),
-    [handleClose, link, reward, dueDate]
+        .then(handleClose)
+        .catch((e) => {
+          console.log(e)
+          setError(e.message)
+        }),
+    [handleClose, link, reward, dueDate, setError]
   );
 
   return (
@@ -91,6 +96,7 @@ const CreateGithubIssueForm = ({
         />
       </DialogContent>
       <DialogActions>
+        <DialogContentText>{error}</DialogContentText>
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
