@@ -16,6 +16,10 @@ variable "github_token" {
     type = string
 }
 
+variable "stripe_secret" {
+    type = string
+}
+
 provider "aws" {
     region = "us-east-1"
 }
@@ -174,4 +178,10 @@ resource "github_actions_secret" "personal_access_token" {
   repository       = "floss"
   secret_name      = "PERSONAL_ACCESS_TOKEN"
   plaintext_value  = var.github_token
+}
+
+resource "github_actions_secret" "stripe_secret" {
+  repository       = "floss"
+  secret_name      = "STRIPE_SECRET_KEY"
+  plaintext_value  = var.stripe_secret
 }
