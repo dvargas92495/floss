@@ -7,3 +7,29 @@ export const headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE",
 };
+
+export const getActiveContracts = () =>
+  dynamo
+    .query({
+      TableName: "FlossContracts",
+      KeyConditionExpression: "reward = :r and lifecycle = :s",
+      IndexName: "reward-lifecycle-index",
+      ExpressionAttributeValues: {
+        ":r": {
+          N: "100",
+        },
+        ":s": {
+          S: "active",
+        },
+      },
+    })
+    .promise()
+    .then(
+      (r) =>
+        r.Items?.map((i) => ({
+          uuid: i.uuid.S,
+          reward: i.reward.N,
+          link: i.link.S,
+          dueDate: i.dueDate.S,
+        })) || []
+    );

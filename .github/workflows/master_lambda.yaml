@@ -4,12 +4,14 @@ on:
     branches: master
     paths:
       - "lambdas/**"
+      - "utils/lambda.ts"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.LAMBDA_AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.LAMBDA_AWS_SECRET_ACCESS_KEY }}
   AWS_DEFAULT_REGION: us-east-1
   PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+  STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
 
 jobs:
   deploy:

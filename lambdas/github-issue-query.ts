@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getActiveContracts } from "./contracts_get";
+import { getActiveContracts } from "../utils/lambda";
 
 export const handler = () => getActiveContracts().then(r => {
   const uuidsByLink = Object.fromEntries(r.map(i => [i.link, i.uuid]))
