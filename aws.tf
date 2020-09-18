@@ -48,7 +48,8 @@ module "aws-serverless-backend" {
         "contract/get",
         "contract/post",
         "contracts/get",
-        "stripe-session/post"
+        "stripe-session/post",
+        "stripe-payment-succeeded/post"
     ]
     tags = {
         Application = "Floss"
