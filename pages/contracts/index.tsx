@@ -53,10 +53,7 @@ const CreateGithubIssueForm = ({
           dueDate: format(dueDate, "yyyy-MM-dd"),
         })
         .then(handleClose)
-        .catch((e) => {
-          console.log(e)
-          setError(e.message)
-        }),
+        .catch((e) => setError(e.response.data)),
     [handleClose, link, reward, dueDate, setError]
   );
 
