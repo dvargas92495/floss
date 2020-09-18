@@ -16,6 +16,10 @@ variable "github_token" {
     type = string
 }
 
+variable "stripe_public" {
+    type = string
+}
+
 variable "stripe_secret" {
     type = string
 }
@@ -179,6 +183,12 @@ resource "github_actions_secret" "personal_access_token" {
   repository       = "floss"
   secret_name      = "PERSONAL_ACCESS_TOKEN"
   plaintext_value  = var.github_token
+}
+
+resource "github_actions_secret" "stripe_public" {
+  repository       = "floss"
+  secret_name      = "STRIPE_PUBLIC_KEY"
+  plaintext_value  = var.stripe_public
 }
 
 resource "github_actions_secret" "stripe_secret" {
