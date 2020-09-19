@@ -25,7 +25,9 @@ jobs:
       - name: install
         run: npm install
       - name: Setup
-        run: echo "NEXT_PUBLIC_REST_API_ID=${{ secrets.REST_API_ID }}" > .env.local
+        run: |
+          echo "NEXT_PUBLIC_REST_API_ID=${{ secrets.REST_API_ID }}" > .env.local
+          echo "NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }}" >> .env.local
       - name: Build
         run: npm run build
       - name: Upload

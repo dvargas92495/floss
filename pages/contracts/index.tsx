@@ -14,6 +14,9 @@ import addMonths from "date-fns/addMonths";
 import format from "date-fns/format";
 import Paper from "@material-ui/core/Paper";
 import { API_URL } from "../../utils/client";
+import { loadStripe } from "@stripe/stripe-js";
+
+const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
 const ContractList = () => {
   const [items, setItems] = useState([]);
@@ -46,14 +49,31 @@ const CreateGithubIssueForm = ({
   const [error, setError] = useState("");
   const saveIssue = useCallback(
     () =>
-      axios
-        .post(`${API_URL}/contract`, {
-          link,
-          reward,
-          dueDate: format(dueDate, "yyyy-MM-dd"),
-        })
-        .then(handleClose)
-        .catch((e) => setError(e.response.data)),
+      reward > 0
+        ? axios
+            .post(`${API_URL}/stripe-session`, {
+              link,
+              reward,
+              dueDate: format(dueDate, "yyyy-MM-dd"),
+            })
+            .then((r) =>
+              stripe.then(
+                (s) =>
+                  s &&
+                  s.redirectToCheckout({
+                    sessionId: r.data.id as string,
+                  })
+              )
+            )
+            .catch((e) => setError(e.response?.data || e.message))
+        : axios
+            .post(`${API_URL}/contract`, {
+              link,
+              reward,
+              dueDate: format(dueDate, "yyyy-MM-dd"),
+            })
+            .then(handleClose)
+            .catch((e) => setError(e.response.data)),
     [handleClose, link, reward, dueDate, setError]
   );
 
@@ -129,12 +149,27 @@ const CreateGithubIssueDialog = () => {
   );
 };
 
-const WithStaticProps = () => (
-  <Layout title="Contract List | Floss">
-    <Typography variant="h1">Contract List</Typography>
-    <ContractList />
-    <CreateGithubIssueDialog />
-  </Layout>
-);
+const WithStaticProps = () => {
+  const [message, setMessage] = useState("");
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("success")) {
+      setMessage(
+        "Contract created! You will receive an email confirmation and see your contract below."
+      );
+    }
+    if (query.get("cancel")) {
+      setMessage("Contract cancel");
+    }
+  }, [setMessage]);
+  return (
+    <Layout title="Contract List | Floss">
+      <Typography variant="h1">Contract List</Typography>
+      <Typography variant="subtitle1">{message}</Typography>
+      <ContractList />
+      <CreateGithubIssueDialog />
+    </Layout>
+  );
+};
 
 export default WithStaticProps;
