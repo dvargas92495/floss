@@ -15,6 +15,7 @@ import format from "date-fns/format";
 import Paper from "@material-ui/core/Paper";
 import { API_URL } from "../../utils/client";
 import { loadStripe } from "@stripe/stripe-js";
+import isAfter from "date-fns/isAfter";
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
@@ -44,9 +45,13 @@ const CreateGithubIssueForm = ({
   handleClose: () => void;
 }) => {
   const [link, setLink] = useState("");
+  const [linkError, setLinkError] = useState("");
   const [reward, setReward] = useState(100);
+  const [rewardError, setRewardError] = useState("");
   const [dueDate, setDueDate] = useState(addMonths(new Date(), 1));
+  const [dueDateError, setDueDateError] = useState("");
   const [error, setError] = useState("");
+
   const saveIssue = useCallback(
     () =>
       reward > 0
@@ -77,6 +82,56 @@ const CreateGithubIssueForm = ({
     [handleClose, link, reward, dueDate, setError]
   );
 
+  const linkOnChange = useCallback(
+    (e) => {
+      setLinkError("");
+      setLink(e.target.value);
+    },
+    [setLink, setLinkError]
+  );
+
+  const linkOnBlur = useCallback(() => {
+    const replaceText = "https://github.com";
+    if (!link.startsWith(replaceText)) {
+      setLinkError(`Link must start with ${replaceText}`);
+      return;
+    }
+
+    axios
+      .get(link.replace(replaceText, "https://api.github.com/repos"))
+      .then(
+        (issue) =>
+          issue.data.state !== "open" &&
+          setLinkError(`Issue at ${link} is ${issue.data.state}`)
+      )
+      .catch((e) => setLinkError(e.response?.data?.message || e.message));
+  }, [link, setLinkError]);
+
+  const rewardOnChange = useCallback(
+    (e) => {
+      setReward(parseInt(e.target.value));
+      setRewardError("");
+    },
+    [setReward, setRewardError]
+  );
+
+  const rewardOnBlur = useCallback(
+    () => reward < 0 && setRewardError("Reward must be greater than 0"),
+    [reward, setRewardError]
+  );
+
+  const dueDateOnChange = useCallback(
+    (e) => {
+      setDueDate(new Date(e.target.value));
+      setDueDateError("");
+    }, [setDueDate, setDueDateError]
+  );
+
+  const dueDateOnBlur = useCallback(
+    () => !isAfter(dueDate, new Date()) && setDueDateError("Due Date must be after today"),
+    [dueDate, setDueDateError]
+  );
+
   return (
     <>
       <DialogContent>
@@ -85,6 +140,7 @@ const CreateGithubIssueForm = ({
         </DialogContentText>
         <TextField
           autoFocus
+          error={!!linkError}
           margin="dense"
           label="Github Issue Link"
           fullWidth
@@ -92,24 +148,32 @@ const CreateGithubIssueForm = ({
           variant="filled"
           placeholder={"https://github.com/{owner}/{repo}/issues/{number}"}
           value={link}
-          onChange={(e) => setLink(e.target.value)}
+          onChange={linkOnChange}
+          helperText={linkError}
+          onBlur={linkOnBlur}
         />
         <TextField
           type={"number"}
+          error={!!rewardError}
           required
           variant="filled"
           label={"Reward"}
           placeholder={"100"}
           value={reward}
-          onChange={(e) => setReward(parseInt(e.target.value))}
+          onChange={rewardOnChange}
+          onBlur={rewardOnBlur}
+          helperText={rewardError}
         />
         <TextField
           type={"date"}
           required
+          error={!!dueDateError}
           variant="filled"
           label={"Due"}
           value={format(dueDate, "yyyy-MM-dd")}
-          onChange={(e) => setDueDate(new Date(e.target.value))}
+          onChange={dueDateOnChange}
+          onBlur={dueDateOnBlur}
+          helperText={dueDateError}
         />
       </DialogContent>
       <DialogActions>
@@ -117,7 +181,7 @@ const CreateGithubIssueForm = ({
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={saveIssue} color="primary">
+        <Button onClick={saveIssue} color="primary" disabled={!!linkError || !link || !!rewardError}>
           Create
         </Button>
       </DialogActions>
