@@ -98,7 +98,7 @@ data "aws_iam_role" "lambda_role" {
 resource "aws_lambda_function" "github_issue_query" {
   function_name    = "floss_github-issue-query"
   role             = data.aws_iam_role.lambda_role.arn
-  handler          = "floss_github-issue-query.handler"
+  handler          = "github-issue-query.handler"
   runtime          = "nodejs12.x"
   filename         = "dummy.zip"
   publish          = false
