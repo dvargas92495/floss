@@ -16,6 +16,14 @@ variable "github_token" {
     type = string
 }
 
+variable "github_client_id" {
+    type = string
+}
+
+variable "github_client_secret" {
+    type = string
+}
+
 variable "stripe_public" {
     type = string
 }
@@ -184,6 +192,18 @@ resource "github_actions_secret" "personal_access_token" {
   repository       = "floss"
   secret_name      = "PERSONAL_ACCESS_TOKEN"
   plaintext_value  = var.github_token
+}
+
+resource "github_actions_secret" "github_client_id" {
+  repository       = "floss"
+  secret_name      = "OAUTH_CLIENT_ID"
+  plaintext_value  = var.github_client_id
+}
+
+resource "github_actions_secret" "github_client_secret" {
+  repository       = "floss"
+  secret_name      = "OAUTH_CLIENT_SECRET"
+  plaintext_value  = var.github_client_secret
 }
 
 resource "github_actions_secret" "stripe_public" {
