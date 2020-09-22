@@ -5,6 +5,8 @@ import { provider } from "web3-core";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
+import MuiLink from "@material-ui/core/Link";
+import GitHub from "@material-ui/icons/GitHub";
 
 declare global {
   interface Window {
@@ -48,12 +50,23 @@ const Layout = ({ children, title = "Floss" }: Props) => {
       </Head>
       <AppBar position="static">
         <Toolbar>
-          <Typography variant="h6" style={{flexGrow: 1}}>
+          <Typography variant="h6" style={{ flexGrow: 1 }}>
             <Link href="/">
               <a>Home</a>
             </Link>
           </Typography>
-          <Typography variant="subtitle1">{account}</Typography>
+          {account ? (
+            <Typography variant="subtitle1">{account}</Typography>
+          ) : (
+            <Typography variant="subtitle1">
+              <MuiLink
+                href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}`}
+                color="inherit"
+              >
+                <GitHub/>
+              </MuiLink>
+            </Typography>
+          )}
         </Toolbar>
       </AppBar>
       {children}

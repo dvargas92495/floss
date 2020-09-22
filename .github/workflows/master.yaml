@@ -28,6 +28,7 @@ jobs:
         run: |
           echo "NEXT_PUBLIC_REST_API_ID=${{ secrets.REST_API_ID }}" > .env.local
           echo "NEXT_PUBLIC_STRIPE_PUBLIC_KEY=${{ secrets.STRIPE_PUBLIC_KEY }}" >> .env.local
+          echo "NEXT_PUBLIC_GITHUB_CLIENT_ID=${{ secrets.OAUTH_CLIENT_ID }}" >> .env.local
       - name: Build
         run: npm run build
       - name: Upload
