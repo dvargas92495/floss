@@ -6,6 +6,7 @@ import axios from "axios";
 
 const AuthPage = () => {
   const [message, setMessage] = useState("");
+  
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const code = query.get("code");
