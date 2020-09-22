@@ -100,6 +100,35 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   }
 }
 
+resource "aws_dynamodb_table" "user-table" {
+  name           = "FlossUsers"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "uuid"
+
+  attribute {
+    name = "uuid"
+    type = "S"
+  }
+
+  attribute {
+    name = "email"
+    type = "S"
+  }
+
+  global_secondary_index {
+    hash_key           = "email"
+    name               = "email-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
+  tags = {
+    Application = "Floss"
+  }
+}
+
 data "aws_iam_role" "lambda_role" {
   name = "floss-lambda-execution"
 }
