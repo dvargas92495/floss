@@ -38,7 +38,7 @@ provider "aws" {
 
 module "aws-static-site" {
     source  = "dvargas92495/static-site/aws"
-    version = "1.0.0"
+    version = "1.1.0"
 
     domain = "floss.davidvargas.me"
     secret = var.secret
