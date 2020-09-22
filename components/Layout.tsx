@@ -24,22 +24,6 @@ type Props = {
 const Layout = ({ children, title = "Floss" }: Props) => {
   const [account, setAccount] = useState("");
   useEffect(() => {
-    /*
-    const web3 = window.ethereum
-      ? new Web3(window.ethereum)
-      : new Web3("ws://localhost:7545");
-    window.ethereum
-      .enable()
-      .then(() => web3.eth.getAccounts())
-      .then((accounts) => {
-        setAccount(accounts[0]);
-        const IssueContract = TruffleContract(contract);
-        IssueContract.setProvider(web3.currentProvider);
-        return IssueContract.deployed();
-      })
-      .then((instance) => instance.issueUrl())
-    .then(console.log
-      });*/
   }, [setAccount]);
   return (
     <div>

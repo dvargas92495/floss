@@ -32,7 +32,12 @@ jobs:
       - name: Build
         run: npm run build
       - name: Upload
-        run: aws s3 sync out s3://floss.davidvargas.me --delete
+        run: |
+          aws s3 sync out s3://floss.davidvargas.me --delete
+          for filename in out/*.html; do
+              HTML=$(basename "$filename" .html)
+              aws s3 cp $filename s3://floss.davidvargas.me/$HTML --content-type "text/html"
+          done
       - name: Invalidate Cache
         run: |
           CLOUDFRONT_ID=$(aws cloudfront list-distributions --query "DistributionList.Items[*].{Alias:Aliases.Items[0],Id:Id}[?Alias=='floss.davidvargas.me'].Id" --output text)
