@@ -22,9 +22,7 @@ type Props = {
 };
 
 const Layout = ({ children, title = "Floss" }: Props) => {
-  const [account, setAccount] = useState("");
-  useEffect(() => {
-  }, [setAccount]);
+  const [account] = useState("");
   return (
     <div>
       <Head>
