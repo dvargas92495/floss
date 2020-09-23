@@ -20,6 +20,7 @@ const AuthPage = () => {
       })
       .then((r) => {
         setUser(r.data);
+        localStorage.setItem("githubToken", r.data.accessToken);
         router.push("/");
       })
       .catch((e) => setMessage(e.response?.data || e.message));

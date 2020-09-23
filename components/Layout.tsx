@@ -25,7 +25,6 @@ type Props = {
 
 const Layout = ({ children, title = "Floss" }: Props) => {
   const { user } = useContext(UserContext);
-  console.log(user);
   return (
     <div>
       <Head>
