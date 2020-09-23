@@ -7,7 +7,7 @@ export const handler = () =>
     const reqs = r.map((i) =>
       i.link
         ? axios(i.link.replace("github.com", "api.github.com/repos"))
-        : Promise.resolve({ data: process.env.PERSONAL_ACCESS_TOKEN } as any)
+        : Promise.resolve({} as any)
     );
     return Promise.all(reqs)
       .then((issues) => {
