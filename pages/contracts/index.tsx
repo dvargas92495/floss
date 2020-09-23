@@ -32,10 +32,12 @@ type StripeSetupIntent = { id: string; client_secret: string };
 
 const CreateGithubIssueForm = ({
   handleClose,
-  setIntent,closeAndFetch,
+  setIntent,
+  closeAndFetch,
 }: {
   handleClose: () => void;
-  setIntent: (intent: StripeSetupIntent) => void;closeAndFetch: () => void;
+  setIntent: (intent: StripeSetupIntent) => void;
+  closeAndFetch: () => void;
 }) => {
   const { user } = useContext(UserContext);
   const [link, setLink] = useState("");
@@ -62,7 +64,7 @@ const CreateGithubIssueForm = ({
       reward > 0
         ? payNow
           ? axios
-              .post(`${API_URL}/stripe-session`, body)
+              .post(`${API_URL}/stripe-session`, body, axiosOpts)
               .then((r) =>
                 stripe.then(
                   (s) =>
@@ -118,8 +120,12 @@ const CreateGithubIssueForm = ({
   );
 
   const rewardOnBlur = useCallback(
-    () => reward < 0 && setRewardError("Reward must be greater than 0"),
-    [reward, setRewardError]
+    () =>
+      (reward < 0 && setRewardError("Reward must be greater than 0")) ||
+      (reward > 0 &&
+        !user &&
+        setRewardError("Must be signed in for a non zero reward")),
+    [reward, setRewardError, user]
   );
 
   const dueDateOnChange = useCallback(
@@ -335,7 +341,7 @@ const WithStaticProps = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState("Loading...");
   const fetchContracts = useCallback(() => {
-    setLoading('Loading...');
+    setLoading("Loading...");
     axios
       .get(`${API_URL}/contracts`)
       .then((res) => {

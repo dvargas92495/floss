@@ -14,6 +14,13 @@ functions:
           path: contract
           method: get
           cors: true
+  contract-post:
+    handler: out/contract_post.handler
+    events:
+      - http:
+          path: contract
+          method: post
+          cors: true
   contract-put:
     handler: out/contract_put.handler
     events:
@@ -27,6 +34,20 @@ functions:
       - http:
           path: contracts
           method: get
+          cors: true
+  stripe-payment-succeeded:
+    handler: out/stripe-payment-succeeded_post.handler
+    events:
+      - http:
+          path: stripe-payment-succeeded
+          method: post
+          cors: true
+  stripe-session-post:
+    handler: out/stripe-session_post.handler
+    events:
+      - http:
+          path: stripe-session
+          method: post
           cors: true
   stripe-setup-intent-post:
     handler: out/stripe-setup-intent_post.handler
