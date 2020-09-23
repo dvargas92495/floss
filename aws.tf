@@ -115,9 +115,23 @@ resource "aws_dynamodb_table" "user-table" {
     type = "S"
   }
 
+  attribute {
+    name = "client"
+    type = "S"
+  }
+
   global_secondary_index {
     hash_key           = "email"
     name               = "email-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
+  global_secondary_index {
+    hash_key           = "client"
+    name               = "client-index"
     non_key_attributes = []
     projection_type    = "ALL"
     read_capacity      = 0

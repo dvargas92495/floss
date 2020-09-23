@@ -1,11 +1,6 @@
-import Stripe from "stripe";
 import { APIGatewayEvent } from "aws-lambda";
-import { dynamo, headers } from "../utils/lambda";
+import { dynamo, headers, stripe } from "../utils/lambda";
 import axios from "axios";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2020-08-27",
-});
 
 export const handler = async (event: APIGatewayEvent) => {
   const { link, reward, dueDate } = JSON.parse(event.body || "{}");
