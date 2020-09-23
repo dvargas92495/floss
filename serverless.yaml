@@ -1,0 +1,22 @@
+service: floss
+provider: aws
+plugins:
+  - serverless-offline
+custom:
+  serverless-offline:
+    httpPort: 3001
+functions:
+  contract-get:
+    handler: out/contract_get.handler
+    events:
+      - http:
+          path: contract
+          method: get
+          cors: true
+  contracts-get:
+    handler: out/contracts_get.handler
+    events:
+      - http:
+          path: contracts
+          method: get
+          cors: true

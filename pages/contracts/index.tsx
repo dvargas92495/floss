@@ -21,17 +21,19 @@ const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
 const ContractList = () => {
   const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState("Loading...");
   useEffect(() => {
-    fetch(`${API_URL}/contracts`)
-      .then((res) => res.json())
-      .then((res) => setItems(res))
-      .finally(() => setLoading(false));
+    axios.get(`${API_URL}/contracts`)
+      .then((res) => {
+        setItems(res.data);
+        setLoading("");
+      })
+      .catch(e => setLoading(e.response?.data || e.message))
   }, [setItems, setLoading]);
   return (
     <Paper variant={"outlined"}>
       {loading ? (
-        <Typography variant={"body2"}>Loading...</Typography>
+        <Typography variant={"body2"}>{loading}</Typography>
       ) : (
         <List items={items} />
       )}
