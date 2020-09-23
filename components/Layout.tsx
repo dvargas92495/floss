@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from "react";
+import React, { ReactNode } from "react";
 import Link from "next/link";
 import Head from "next/head";
 import { provider } from "web3-core";
@@ -40,7 +40,7 @@ const Layout = ({ children, title = "Floss", userObj }: Props) => {
             </Link>
           </Typography>
           {userObj.avatar_url ? (
-            <Avatar alt={userObj.name} src={userObj.avata_url} />
+            <Avatar alt={userObj.name} src={userObj.avatar_url} />
           ) : (
             <MuiLink
               href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}`}
