@@ -56,7 +56,7 @@ export const handler = async (event: APIGatewayEvent) => {
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ email, name }),
+        body: JSON.stringify({ email, name, accessToken }),
         headers,
       };
     })
