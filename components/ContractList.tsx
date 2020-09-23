@@ -12,9 +12,17 @@ type Props = {
 const ContractList = ({ items }: Props) => (
   <List component="nav" aria-label="contracts">
     {items.map((item) => (
-      <ListItem key={item.uuid} button component="a" href={`/contracts/${item.uuid}`}>
+      <ListItem
+        key={item.uuid}
+        button
+        component="a"
+        href={`/contract?uuid=${item.uuid}`}
+      >
         <ListItemIcon>${item.reward}</ListItemIcon>
-        <ListItemText primary={item.link} secondary={`Due on: ${item.dueDate}`}/>
+        <ListItemText
+          primary={item.link}
+          secondary={`Due on: ${item.dueDate}`}
+        />
       </ListItem>
     ))}
   </List>
