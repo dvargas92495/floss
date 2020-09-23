@@ -13,11 +13,19 @@ export const handler = async (event: APIGatewayEvent) => {
       accept: "json",
     })
     .then(async (r) => {
-      const accessToken = r.data.substring("access_token=".length);
+      const params = r.data.split("&") as string[];
+      const accessToken = params
+        .find((s) => s.split("=")[0] === "access_token")
+        ?.substring("access_token=".length);
       const userResponse = await axios.get(
-        `https://api.github.com/user?access_token=${accessToken}`
+        `https://api.github.com/user?access_token=${accessToken}`,
+        {
+          headers: {
+            Authorization: `token ${accessToken}`,
+          },
+        }
       );
-      const { email, name } = userResponse.data;
+      const { email, name, avatar_url } = userResponse.data;
       const dynamoResponse = await dynamo
         .query({
           TableName: "FlossUsers",
@@ -31,7 +39,10 @@ export const handler = async (event: APIGatewayEvent) => {
         })
         .promise();
       if (!dynamoResponse.Items || dynamoResponse.Count === 0) {
-        const client = await stripe.customers.create();
+        const client = await stripe.customers.create({
+          email,
+          name,
+        });
         const uuid = v4();
         await dynamo
           .putItem({
@@ -52,11 +63,20 @@ export const handler = async (event: APIGatewayEvent) => {
             TableName: "FlossUsers",
           })
           .promise();
+      } else {
+        const Item = dynamoResponse.Items[0];
+        Item.accessToken.S = accessToken;
+        await dynamo
+          .putItem({
+            Item,
+            TableName: "FlossUsers",
+          })
+          .promise();
       }
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ email, name, accessToken }),
+        body: JSON.stringify({ email, name, accessToken, avatar_url }),
         headers,
       };
     })

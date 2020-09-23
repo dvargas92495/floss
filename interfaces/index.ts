@@ -5,3 +5,10 @@ export type Issue = {
   reward: number;
   uuid: string;
 };
+
+export type User = {
+  name: string;
+  email: string;
+  accessToken: string;
+  avatar_url: string;
+};

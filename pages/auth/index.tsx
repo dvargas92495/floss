@@ -3,9 +3,12 @@ import React, { useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { API_URL } from "../../utils/client";
 import axios from "axios";
+import { useRouter } from "next/router";
+import { User } from "../../interfaces";
 
-const AuthPage = () => {
+const AuthPage = ({ setUserObj }: { setUserObj: (obj: User) => void }) => {
   const [message, setMessage] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -14,12 +17,19 @@ const AuthPage = () => {
       .post(`${API_URL}/github-auth`, {
         code,
       })
-      .then((r) => setMessage(`${r.data.email} - ${r.data.name}`));
+      .then((r) => {
+        setUserObj(r.data);
+        router.push("/");
+      })
+      .catch((e) => setMessage(e.response?.data || e.message));
   }, [setMessage]);
   return (
     <Layout title="Authentication | Floss">
-      <Typography variant="h1">Logging In...</Typography>
-      <Typography variant="subtitle1">{message}</Typography>
+      {message ? (
+        <Typography variant="subtitle1">{message}</Typography>
+      ) : (
+        <Typography variant="h1">Logging In...</Typography>
+      )}
     </Layout>
   );
 };

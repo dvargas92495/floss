@@ -7,6 +7,8 @@ import Toolbar from "@material-ui/core/Toolbar";
 import Typography from "@material-ui/core/Typography";
 import MuiLink from "@material-ui/core/Link";
 import GitHub from "@material-ui/icons/GitHub";
+import Avatar from "@material-ui/core/Avatar";
+import { User } from "../interfaces";
 
 declare global {
   interface Window {
@@ -19,10 +21,10 @@ declare global {
 type Props = {
   children?: ReactNode;
   title?: string;
+  userObj: User;
 };
 
-const Layout = ({ children, title = "Floss" }: Props) => {
-  const [account] = useState("");
+const Layout = ({ children, title = "Floss", userObj }: Props) => {
   return (
     <div>
       <Head>
@@ -37,17 +39,17 @@ const Layout = ({ children, title = "Floss" }: Props) => {
               <a>Home</a>
             </Link>
           </Typography>
-          {account ? (
-            <Typography variant="subtitle1">{account}</Typography>
+          {userObj.avatar_url ? (
+            <Avatar alt={userObj.name} src={userObj.avata_url} />
           ) : (
-            <Typography variant="subtitle1">
-              <MuiLink
-                href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}`}
-                color="inherit"
-              >
-                <GitHub/>
-              </MuiLink>
-            </Typography>
+            <MuiLink
+              href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}`}
+              color="inherit"
+            >
+              <Avatar>
+                <GitHub />
+              </Avatar>
+            </MuiLink>
           )}
         </Toolbar>
       </AppBar>

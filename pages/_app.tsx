@@ -1,8 +1,11 @@
 import { AppProps } from 'next/app';
+import { useState } from 'react';
+import { User } from '../interfaces';
 
 export default function MyApp({
   Component,
   pageProps,
 }:AppProps) {
-  return <Component {...pageProps} />;
+  const [userObj, setUserObj] = useState<User>({});
+  return <Component {...pageProps} userObj={userObj} setUserObj={setUserObj} />;
 }
