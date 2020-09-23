@@ -7,7 +7,7 @@ import axios from "axios";
 export default function MyApp({ Component, pageProps }: AppProps) {
   const [user, setUser] = useState<User>();
   useEffect(() => {
-    const accessToken = localStorage.getItem("githubToken");
+    const accessToken = localStorage.getItem("githubToken") || process.env.NEXT_PUBLIC_GITHUB_TOKEN;
     if (accessToken && !user) {
       axios
         .get(`https://api.github.com/user?access_token=${accessToken}`, {
