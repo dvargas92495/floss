@@ -28,35 +28,14 @@ import {
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
-const ContractList = () => {
-  const [items, setItems] = useState([]);
-  const [loading, setLoading] = useState("Loading...");
-  useEffect(() => {
-    axios
-      .get(`${API_URL}/contracts`)
-      .then((res) => {
-        setItems(res.data);
-        setLoading("");
-      })
-      .catch((e) => setLoading(e.response?.data || e.message));
-  }, [setItems, setLoading]);
-  return (
-    <Paper variant={"outlined"}>
-      {loading ? (
-        <Typography variant={"body2"}>{loading}</Typography>
-      ) : (
-        <List items={items} />
-      )}
-    </Paper>
-  );
-};
+type StripeSetupIntent = { id: string; client_secret: string };
 
 const CreateGithubIssueForm = ({
   handleClose,
-  setIntentClientSecret,
+  setIntent,closeAndFetch,
 }: {
   handleClose: () => void;
-  setIntentClientSecret: (secret: string) => void;
+  setIntent: (intent: StripeSetupIntent) => void;closeAndFetch: () => void;
 }) => {
   const { user } = useContext(UserContext);
   const [link, setLink] = useState("");
@@ -96,13 +75,13 @@ const CreateGithubIssueForm = ({
               .catch((e) => setError(e.response?.data || e.message))
           : axios
               .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
-              .then((r) => setIntentClientSecret(r.data.client_secret))
+              .then((r) => setIntent(r.data))
               .catch((e) => setError(e.response?.data || e.message))
         : axios
             .post(`${API_URL}/contract`, body)
-            .then(handleClose)
+            .then(closeAndFetch)
             .catch((e) => setError(e.response?.data || e.message)),
-    [handleClose, body, payNow, setError, setIntentClientSecret]
+    [closeAndFetch, body, payNow, setError, setIntent]
   );
 
   const linkOnChange = useCallback(
@@ -231,12 +210,12 @@ const CreateGithubIssueForm = ({
 };
 
 const StripeIntentForm = ({
-  intentClientSecret,
-  clearIntentClientSecret,
+  intent,
+  clearIntent,
   handleClose,
 }: {
-  intentClientSecret: string;
-  clearIntentClientSecret: () => void;
+  intent: StripeSetupIntent;
+  clearIntent: () => void;
   handleClose: () => void;
 }) => {
   const s = useStripe();
@@ -251,7 +230,7 @@ const StripeIntentForm = ({
       return;
     }
     const { name, email } = user;
-    s.confirmCardSetup(intentClientSecret, {
+    s.confirmCardSetup(intent.client_secret, {
       payment_method: {
         card,
         billing_details: {
@@ -259,8 +238,10 @@ const StripeIntentForm = ({
           email,
         },
       },
-    }).then(handleClose);
-  }, [s, intentClientSecret, elements, user]);
+    })
+      .then(() => axios.put(`${API_URL}/contract`, { id: intent.id }))
+      .then(handleClose);
+  }, [s, intent, elements, user]);
   return (
     <>
       <DialogContent>
@@ -270,7 +251,7 @@ const StripeIntentForm = ({
         <CardElement />
       </DialogContent>
       <DialogActions>
-        <Button color="primary" onClick={clearIntentClientSecret}>
+        <Button color="primary" onClick={clearIntent}>
           Cancel
         </Button>
         <Button
@@ -286,31 +267,37 @@ const StripeIntentForm = ({
 };
 
 const StripeIntent = ({
-  intentClientSecret,
-  clearIntentClientSecret,
+  intent,
+  clearIntent,
   handleClose,
 }: {
-  intentClientSecret: string;
-  clearIntentClientSecret: () => void;
+  intent: StripeSetupIntent;
+  clearIntent: () => void;
   handleClose: () => void;
 }) => (
   <Elements stripe={stripe}>
     <StripeIntentForm
-      intentClientSecret={intentClientSecret}
-      clearIntentClientSecret={clearIntentClientSecret}
+      intent={intent}
+      clearIntent={clearIntent}
       handleClose={handleClose}
     />
   </Elements>
 );
 
-const CreateGithubIssueDialog = () => {
+const CreateGithubIssueDialog = ({
+  fetchContracts,
+}: {
+  fetchContracts: () => void;
+}) => {
   const [open, setOpen] = useState(false);
-  const [intentClientSecret, setIntentClientSecret] = useState("");
+  const [intent, setIntent] = useState<StripeSetupIntent>();
   const handleOpen = useCallback(() => setOpen(true), [setOpen]);
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
-  const clearIntentClientSecret = useCallback(() => setIntentClientSecret(""), [
-    setIntentClientSecret,
-  ]);
+  const clearIntent = useCallback(() => setIntent(undefined), [setIntent]);
+  const closeAndFetch = useCallback(() => {
+    handleClose();
+    fetchContracts();
+  }, [handleClose, fetchContracts]);
 
   return (
     <>
@@ -325,16 +312,17 @@ const CreateGithubIssueDialog = () => {
         <DialogTitle id="issue-form-title">
           Create Github Issue Contract
         </DialogTitle>
-        {intentClientSecret ? (
+        {intent ? (
           <StripeIntent
-            intentClientSecret={intentClientSecret}
-            clearIntentClientSecret={clearIntentClientSecret}
-            handleClose={handleClose}
+            intent={intent}
+            clearIntent={clearIntent}
+            handleClose={closeAndFetch}
           />
         ) : (
           <CreateGithubIssueForm
             handleClose={handleClose}
-            setIntentClientSecret={setIntentClientSecret}
+            setIntent={setIntent}
+            closeAndFetch={closeAndFetch}
           />
         )}
       </Dialog>
@@ -344,6 +332,21 @@ const CreateGithubIssueDialog = () => {
 
 const WithStaticProps = () => {
   const [message, setMessage] = useState("");
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState("Loading...");
+  const fetchContracts = useCallback(() => {
+    setLoading('Loading...');
+    axios
+      .get(`${API_URL}/contracts`)
+      .then((res) => {
+        setItems(res.data);
+        setLoading("");
+      })
+      .catch((e) => setLoading(e.response?.data || e.message));
+  }, [setItems, setLoading]);
+  useEffect(() => {
+    fetchContracts();
+  }, [fetchContracts]);
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     if (query.get("success")) {
@@ -359,8 +362,14 @@ const WithStaticProps = () => {
     <Layout title="Contract List | Floss">
       <Typography variant="h1">Contract List</Typography>
       <Typography variant="subtitle1">{message}</Typography>
-      <ContractList />
-      <CreateGithubIssueDialog />
+      <Paper variant={"outlined"}>
+        {loading ? (
+          <Typography variant={"body2"}>{loading}</Typography>
+        ) : (
+          <List items={items} />
+        )}
+      </Paper>
+      <CreateGithubIssueDialog fetchContracts={fetchContracts} />
     </Layout>
   );
 };

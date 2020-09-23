@@ -14,6 +14,13 @@ functions:
           path: contract
           method: get
           cors: true
+  contract-put:
+    handler: out/contract_put.handler
+    events:
+      - http:
+          path: contract
+          method: put
+          cors: true
   contracts-get:
     handler: out/contracts_get.handler
     events:

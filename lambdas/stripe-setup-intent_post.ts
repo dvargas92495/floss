@@ -58,7 +58,7 @@ export const handler = async (event: APIGatewayEvent) => {
     .promise()
     .then(() => ({
       statusCode: 200,
-      body: JSON.stringify({ client_secret: intent.client_secret }),
+      body: JSON.stringify({ client_secret: intent.client_secret, id: intent.id }),
       headers,
     }));
 };
