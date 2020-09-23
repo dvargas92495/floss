@@ -55,6 +55,7 @@ module "aws-serverless-backend" {
     paths = [
         "contract/get",
         "contract/post",
+        "contract/put",
         "contracts/get",
         "github-auth/post",
         "stripe-session/post",
