@@ -58,6 +58,7 @@ module "aws-serverless-backend" {
         "contracts/get",
         "github-auth/post",
         "stripe-session/post",
+        "stripe-setup-intent/post",
         "stripe-payment-succeeded/post"
     ]
     tags = {
