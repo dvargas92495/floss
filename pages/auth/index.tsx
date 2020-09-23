@@ -1,14 +1,15 @@
 import Typography from "@material-ui/core/Typography";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Layout from "../../components/Layout";
 import { API_URL } from "../../utils/client";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { User } from "../../interfaces";
+import UserContext from "../../components/UserContext";
 
-const AuthPage = ({ setUserObj }: { setUserObj: (obj: User) => void }) => {
+const AuthPage = () => {
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const { setUser } = useContext(UserContext);
 
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
@@ -18,11 +19,11 @@ const AuthPage = ({ setUserObj }: { setUserObj: (obj: User) => void }) => {
         code,
       })
       .then((r) => {
-        setUserObj(r.data);
+        setUser(r.data);
         router.push("/");
       })
       .catch((e) => setMessage(e.response?.data || e.message));
-  }, [setMessage]);
+  }, [setMessage, setUser]);
   return (
     <Layout title="Authentication | Floss">
       {message ? (

@@ -1,4 +1,4 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useContext } from "react";
 import Link from "next/link";
 import Head from "next/head";
 import { provider } from "web3-core";
@@ -8,7 +8,7 @@ import Typography from "@material-ui/core/Typography";
 import MuiLink from "@material-ui/core/Link";
 import GitHub from "@material-ui/icons/GitHub";
 import Avatar from "@material-ui/core/Avatar";
-import { User } from "../interfaces";
+import UserContext from "./UserContext";
 
 declare global {
   interface Window {
@@ -21,10 +21,11 @@ declare global {
 type Props = {
   children?: ReactNode;
   title?: string;
-  userObj?: User;
 };
 
-const Layout = ({ children, title = "Floss", userObj }: Props) => {
+const Layout = ({ children, title = "Floss" }: Props) => {
+  const { user } = useContext(UserContext);
+  console.log(user);
   return (
     <div>
       <Head>
@@ -39,8 +40,8 @@ const Layout = ({ children, title = "Floss", userObj }: Props) => {
               <a>Home</a>
             </Link>
           </Typography>
-          {userObj ? (
-            <Avatar alt={userObj?.name} src={userObj?.avatar_url} />
+          {user ? (
+            <Avatar alt={user.name} src={user.avatar_url} />
           ) : (
             <MuiLink
               href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}`}

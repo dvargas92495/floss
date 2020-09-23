@@ -18,7 +18,7 @@ export const handler = async (event: APIGatewayEvent) => {
                       name: "Github Issue",
                       description: link,
                     },
-                    unit_amount: reward,
+                    unit_amount: reward * 100,
                   },
                   quantity: 1,
                 },
