@@ -6,13 +6,15 @@ import axios from "axios";
 
 const AuthPage = () => {
   const [message, setMessage] = useState("");
-  
+
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
     const code = query.get("code");
-    axios.post(`${API_URL}/github-auth`, {
-      code,
-    }).then(r => setMessage(r.data.access_token));
+    axios
+      .post(`${API_URL}/github-auth`, {
+        code,
+      })
+      .then((r) => setMessage(`${r.data.email} - ${r.data.name}`));
   }, [setMessage]);
   return (
     <Layout title="Authentication | Floss">
