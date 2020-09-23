@@ -16,6 +16,8 @@ import Paper from "@material-ui/core/Paper";
 import { API_URL } from "../../utils/client";
 import { loadStripe } from "@stripe/stripe-js";
 import isAfter from "date-fns/isAfter";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
@@ -23,12 +25,13 @@ const ContractList = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState("Loading...");
   useEffect(() => {
-    axios.get(`${API_URL}/contracts`)
+    axios
+      .get(`${API_URL}/contracts`)
       .then((res) => {
         setItems(res.data);
         setLoading("");
       })
-      .catch(e => setLoading(e.response?.data || e.message))
+      .catch((e) => setLoading(e.response?.data || e.message));
   }, [setItems, setLoading]);
   return (
     <Paper variant={"outlined"}>
@@ -49,6 +52,7 @@ const CreateGithubIssueForm = ({
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [reward, setReward] = useState(100);
+  const [payNow, setPayNow] = useState(true);
   const [rewardError, setRewardError] = useState("");
   const [dueDate, setDueDate] = useState(addMonths(new Date(), 1));
   const [dueDateError, setDueDateError] = useState("");
@@ -126,12 +130,20 @@ const CreateGithubIssueForm = ({
     (e) => {
       setDueDate(new Date(e.target.value));
       setDueDateError("");
-    }, [setDueDate, setDueDateError]
+    },
+    [setDueDate, setDueDateError]
   );
 
   const dueDateOnBlur = useCallback(
-    () => !isAfter(dueDate, new Date()) && setDueDateError("Due Date must be after today"),
+    () =>
+      !isAfter(dueDate, new Date()) &&
+      setDueDateError("Due Date must be after today"),
     [dueDate, setDueDateError]
+  );
+  
+  const payNowOnChange = useCallback(
+    (e) => setPayNow( e.target.checked),
+    [setPayNow]
   );
 
   return (
@@ -177,13 +189,28 @@ const CreateGithubIssueForm = ({
           onBlur={dueDateOnBlur}
           helperText={dueDateError}
         />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={payNow}
+              onChange={payNowOnChange}
+              name="payNow"
+            />
+          }
+          label={payNow ? "Pay Now" : "Pay On Close"}
+          labelPlacement={"bottom"}
+        />
       </DialogContent>
       <DialogActions>
         <DialogContentText>{error}</DialogContentText>
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>
-        <Button onClick={saveIssue} color="primary" disabled={!!linkError || !link || !!rewardError}>
+        <Button
+          onClick={saveIssue}
+          color="primary"
+          disabled={!!linkError || !link || !!rewardError || !!dueDateError}
+        >
           Create
         </Button>
       </DialogActions>
