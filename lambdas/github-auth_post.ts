@@ -38,6 +38,7 @@ export const handler = async (event: APIGatewayEvent) => {
           },
         })
         .promise();
+        
       if (!dynamoResponse.Items || dynamoResponse.Count === 0) {
         const client = await stripe.customers.create({
           email,

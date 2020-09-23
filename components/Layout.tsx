@@ -21,7 +21,7 @@ declare global {
 type Props = {
   children?: ReactNode;
   title?: string;
-  userObj: User;
+  userObj?: User;
 };
 
 const Layout = ({ children, title = "Floss", userObj }: Props) => {
@@ -39,8 +39,8 @@ const Layout = ({ children, title = "Floss", userObj }: Props) => {
               <a>Home</a>
             </Link>
           </Typography>
-          {userObj.avatar_url ? (
-            <Avatar alt={userObj.name} src={userObj.avatar_url} />
+          {userObj ? (
+            <Avatar alt={userObj?.name} src={userObj?.avatar_url} />
           ) : (
             <MuiLink
               href={`https://github.com/login/oauth/authorize?scope=user:email&client_id=${process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID}`}
