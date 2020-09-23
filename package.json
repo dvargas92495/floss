@@ -14,6 +14,7 @@
   "dependencies": {
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
+    "@stripe/react-stripe-js": "^1.1.2",
     "@stripe/stripe-js": "^1.9.0",
     "@truffle/contract": "^4.2.21",
     "aws-sdk": "^2.751.0",
@@ -33,6 +34,7 @@
     "@types/react-dom": "^16.9.4",
     "@types/uuid": "^8.3.0",
     "dotenv-webpack": "^2.0.0",
+    "serverless-dotenv-plugin": "^3.0.0",
     "serverless-offline": "^6.8.0",
     "ts-loader": "^8.0.3",
     "typescript": "4.0",

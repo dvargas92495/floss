@@ -38,3 +38,17 @@ export const getActiveContracts = () =>
           dueDate: i.dueDate.S,
         })) || []
     );
+
+export const getFlossUserByEmail = (email: string) =>
+  dynamo
+    .query({
+      TableName: "FlossUsers",
+      KeyConditionExpression: "email = :e",
+      IndexName: "email-index",
+      ExpressionAttributeValues: {
+        ":e": {
+          S: email,
+        },
+      },
+    })
+    .promise();

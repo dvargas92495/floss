@@ -1,7 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
 import { v4 } from "uuid";
-import { dynamo, headers, stripe } from "../utils/lambda";
+import { dynamo, getFlossUserByEmail, headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const { code } = JSON.parse(event.body || "{}");
@@ -26,18 +26,7 @@ export const handler = async (event: APIGatewayEvent) => {
         }
       );
       const { email, name, avatar_url } = userResponse.data;
-      const dynamoResponse = await dynamo
-        .query({
-          TableName: "FlossUsers",
-          KeyConditionExpression: "email = :e",
-          IndexName: "email-index",
-          ExpressionAttributeValues: {
-            ":e": {
-              S: email,
-            },
-          },
-        })
-        .promise();
+      const dynamoResponse = await getFlossUserByEmail(email);
         
       if (!dynamoResponse.Items || dynamoResponse.Count === 0) {
         const client = await stripe.customers.create({

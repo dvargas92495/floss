@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import axios from "axios";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useContext } from "react";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
@@ -18,6 +18,13 @@ import { loadStripe } from "@stripe/stripe-js";
 import isAfter from "date-fns/isAfter";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
+import UserContext from "../../components/UserContext";
+import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
@@ -46,9 +53,12 @@ const ContractList = () => {
 
 const CreateGithubIssueForm = ({
   handleClose,
+  setIntentClientSecret,
 }: {
   handleClose: () => void;
+  setIntentClientSecret: (secret: string) => void;
 }) => {
+  const { user } = useContext(UserContext);
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [reward, setReward] = useState(100);
@@ -57,35 +67,42 @@ const CreateGithubIssueForm = ({
   const [dueDate, setDueDate] = useState(addMonths(new Date(), 1));
   const [dueDateError, setDueDateError] = useState("");
   const [error, setError] = useState("");
+  const body = {
+    link,
+    reward,
+    dueDate: format(dueDate, "yyyy-MM-dd"),
+  };
+  const axiosOpts = {
+    headers: {
+      Authorization: `token ${user?.accessToken}`,
+    },
+  };
 
   const saveIssue = useCallback(
     () =>
       reward > 0
-        ? axios
-            .post(`${API_URL}/stripe-session`, {
-              link,
-              reward,
-              dueDate: format(dueDate, "yyyy-MM-dd"),
-            })
-            .then((r) =>
-              stripe.then(
-                (s) =>
-                  s &&
-                  s.redirectToCheckout({
-                    sessionId: r.data.id as string,
-                  })
+        ? payNow
+          ? axios
+              .post(`${API_URL}/stripe-session`, body)
+              .then((r) =>
+                stripe.then(
+                  (s) =>
+                    s &&
+                    s.redirectToCheckout({
+                      sessionId: r.data.id as string,
+                    })
+                )
               )
-            )
-            .catch((e) => setError(e.response?.data || e.message))
+              .catch((e) => setError(e.response?.data || e.message))
+          : axios
+              .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
+              .then((r) => setIntentClientSecret(r.data.client_secret))
+              .catch((e) => setError(e.response?.data || e.message))
         : axios
-            .post(`${API_URL}/contract`, {
-              link,
-              reward,
-              dueDate: format(dueDate, "yyyy-MM-dd"),
-            })
+            .post(`${API_URL}/contract`, body)
             .then(handleClose)
-            .catch((e) => setError(e.response.data)),
-    [handleClose, link, reward, dueDate, setError]
+            .catch((e) => setError(e.response?.data || e.message)),
+    [handleClose, body, payNow, setError, setIntentClientSecret]
   );
 
   const linkOnChange = useCallback(
@@ -140,11 +157,10 @@ const CreateGithubIssueForm = ({
       setDueDateError("Due Date must be after today"),
     [dueDate, setDueDateError]
   );
-  
-  const payNowOnChange = useCallback(
-    (e) => setPayNow( e.target.checked),
-    [setPayNow]
-  );
+
+  const payNowOnChange = useCallback((e) => setPayNow(e.target.checked), [
+    setPayNow,
+  ]);
 
   return (
     <>
@@ -191,11 +207,7 @@ const CreateGithubIssueForm = ({
         />
         <FormControlLabel
           control={
-            <Switch
-              checked={payNow}
-              onChange={payNowOnChange}
-              name="payNow"
-            />
+            <Switch checked={payNow} onChange={payNowOnChange} name="payNow" />
           }
           label={payNow ? "Pay Now" : "Pay On Close"}
           labelPlacement={"bottom"}
@@ -218,10 +230,87 @@ const CreateGithubIssueForm = ({
   );
 };
 
+const StripeIntentForm = ({
+  intentClientSecret,
+  clearIntentClientSecret,
+  handleClose,
+}: {
+  intentClientSecret: string;
+  clearIntentClientSecret: () => void;
+  handleClose: () => void;
+}) => {
+  const s = useStripe();
+  const elements = useElements();
+  const { user } = useContext(UserContext);
+  const onSave = useCallback(() => {
+    if (!s || !elements || !user) {
+      return;
+    }
+    const card = elements.getElement(CardElement);
+    if (!card) {
+      return;
+    }
+    const { name, email } = user;
+    s.confirmCardSetup(intentClientSecret, {
+      payment_method: {
+        card,
+        billing_details: {
+          name,
+          email,
+        },
+      },
+    }).then(handleClose);
+  }, [s, intentClientSecret, elements, user]);
+  return (
+    <>
+      <DialogContent>
+        <DialogContentText>
+          Card Details - To be charged when issue is closed
+        </DialogContentText>
+        <CardElement />
+      </DialogContent>
+      <DialogActions>
+        <Button color="primary" onClick={clearIntentClientSecret}>
+          Cancel
+        </Button>
+        <Button
+          color="primary"
+          onClick={onSave}
+          disabled={!stripe || !elements || !user}
+        >
+          Save
+        </Button>
+      </DialogActions>
+    </>
+  );
+};
+
+const StripeIntent = ({
+  intentClientSecret,
+  clearIntentClientSecret,
+  handleClose,
+}: {
+  intentClientSecret: string;
+  clearIntentClientSecret: () => void;
+  handleClose: () => void;
+}) => (
+  <Elements stripe={stripe}>
+    <StripeIntentForm
+      intentClientSecret={intentClientSecret}
+      clearIntentClientSecret={clearIntentClientSecret}
+      handleClose={handleClose}
+    />
+  </Elements>
+);
+
 const CreateGithubIssueDialog = () => {
   const [open, setOpen] = useState(false);
+  const [intentClientSecret, setIntentClientSecret] = useState("");
   const handleOpen = useCallback(() => setOpen(true), [setOpen]);
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
+  const clearIntentClientSecret = useCallback(() => setIntentClientSecret(""), [
+    setIntentClientSecret,
+  ]);
 
   return (
     <>
@@ -236,7 +325,18 @@ const CreateGithubIssueDialog = () => {
         <DialogTitle id="issue-form-title">
           Create Github Issue Contract
         </DialogTitle>
-        <CreateGithubIssueForm handleClose={handleClose} />
+        {intentClientSecret ? (
+          <StripeIntent
+            intentClientSecret={intentClientSecret}
+            clearIntentClientSecret={clearIntentClientSecret}
+            handleClose={handleClose}
+          />
+        ) : (
+          <CreateGithubIssueForm
+            handleClose={handleClose}
+            setIntentClientSecret={setIntentClientSecret}
+          />
+        )}
       </Dialog>
     </>
   );

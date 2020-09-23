@@ -2,6 +2,7 @@ service: floss
 provider: aws
 plugins:
   - serverless-offline
+  - serverless-dotenv-plugin
 custom:
   serverless-offline:
     httpPort: 3001
@@ -19,4 +20,11 @@ functions:
       - http:
           path: contracts
           method: get
+          cors: true
+  stripe-setup-intent-post:
+    handler: out/stripe-setup-intent_post.handler
+    events:
+      - http:
+          path: stripe-setup-intent
+          method: post
           cors: true
