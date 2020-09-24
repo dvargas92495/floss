@@ -230,7 +230,7 @@ resource "aws_route53_record" "dkim_record" {
 }
 
 resource "aws_route53_record" "mail_from_txt_record" {
-  zone_id = data.aws_route53_zone.longwave.id
+  zone_id = module.aws-static-site.route53_zone_id
   name    = "noreply.${aws_ses_domain_identity.domain.domain}"
   type    = "TXT"
   ttl     = "300"
