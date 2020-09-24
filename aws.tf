@@ -38,7 +38,7 @@ provider "aws" {
 
 module "aws-static-site" {
     source  = "dvargas92495/static-site/aws"
-    version = "1.1.0"
+    version = "1.2.0"
 
     domain = "floss.davidvargas.me"
     secret = var.secret
@@ -197,6 +197,44 @@ data "aws_iam_user" "deploy_lambda" {
 resource "aws_iam_user_policy" "deploy_lambda" {
   user   = data.aws_iam_user.deploy_lambda.user_name
   policy = data.aws_iam_policy_document.deploy_policy.json
+}
+
+resource "aws_ses_domain_identity" "domain" {
+  domain = "floss.davidvargas.me"
+}
+
+resource "aws_ses_domain_dkim" "domain" {
+  domain = aws_ses_domain_identity.domain.domain
+}
+
+resource "aws_ses_domain_mail_from" "domain" {
+  domain           = aws_ses_domain_identity.domain.domain
+  mail_from_domain = "noreply.${aws_ses_domain_identity.domain.domain}"
+}
+
+resource "aws_route53_record" "ses_verification_record" {
+  zone_id = module.aws-static-site.route53_zone_id
+  name    = "_amazonses.${aws_ses_domain_identity.domain.domain}"
+  type    = "TXT"
+  ttl     = "1800"
+  records = [aws_ses_domain_identity.domain.verification_token]
+}
+
+resource "aws_route53_record" "dkim_record" {
+  count   = 3
+  zone_id = module.aws-static-site.route53_zone_id
+  name    = "${element(aws_ses_domain_dkim.domain.dkim_tokens, count.index)}._domainkey.${aws_ses_domain_identity.domain.domain}"
+  type    = "CNAME"
+  ttl     = "1800"
+  records = ["${element(aws_ses_domain_dkim.domain.dkim_tokens, count.index)}.dkim.amazonses.com"]
+}
+
+resource "aws_route53_record" "mail_from_txt_record" {
+  zone_id = data.aws_route53_zone.longwave.id
+  name    = "noreply.${aws_ses_domain_identity.domain.domain}"
+  type    = "TXT"
+  ttl     = "300"
+  records = ["v=spf1 include:amazonses.com ~all"]
 }
 
 provider "github" {
