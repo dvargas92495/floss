@@ -1,5 +1,6 @@
 import { AppProps } from "next/app";
 import { useEffect, useState } from "react";
+import { ThemeProvider } from '@dvargas92495/ui';
 import UserContext from "../components/UserContext";
 import { User } from "../interfaces";
 import axios from "axios";
@@ -27,7 +28,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   }, [user, setUser]);
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      <Component {...pageProps} />
+      <style global jsx>{`
+        body {
+          margin: 0
+        }
+      `}</style>
+      <ThemeProvider>
+        <Component {...pageProps} />
+      </ThemeProvider>
     </UserContext.Provider>
   );
 }
