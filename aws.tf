@@ -79,7 +79,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 
   attribute {
     name = "priority"
-    type = "N"
+    type = "S"
   }
 
   attribute {
