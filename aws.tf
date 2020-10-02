@@ -78,7 +78,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   }
 
   attribute {
-    name = "reward"
+    name = "priority"
     type = "N"
   }
 
@@ -88,11 +88,11 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
   }
 
   global_secondary_index {
-    hash_key           = "reward"
-    name               = "reward-lifecycle-index"
+    hash_key           = "lifecycle"
+    name               = "lifecycle-priority-index"
     non_key_attributes = []
     projection_type    = "ALL"
-    range_key          = "lifecycle"
+    range_key          = "priority"
     read_capacity      = 0
     write_capacity     = 0
   }
