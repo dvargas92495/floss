@@ -91,7 +91,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     hash_key           = "lifecycle"
     name               = "lifecycle-priority-index"
     non_key_attributes = []
-    projection_type    = "ALL"
+    projection_type    = "KEYS_ONLY"
     range_key          = "priority"
     read_capacity      = 0
     write_capacity     = 0
