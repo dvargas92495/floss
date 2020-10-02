@@ -1,6 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { dynamo, getFlossUserByEmail, headers, stripe, toPriority } from "../utils/lambda";
 import axios from "axios";
+import { v4 } from "uuid";
 
 export const handler = async (event: APIGatewayEvent) => {
   const { link, reward, dueDate } : {
@@ -33,6 +34,7 @@ export const handler = async (event: APIGatewayEvent) => {
       headers,
     };
   }
+  const uuid = v4();
   return stripe.checkout.sessions
     .create({
       customer: flossUser.Items[0].client.S,
@@ -59,6 +61,9 @@ export const handler = async (event: APIGatewayEvent) => {
         .putItem({
           Item: {
             uuid: {
+              S: uuid,
+            },
+            stripe: {
               S: session.payment_intent as string,
             },
             link: {
