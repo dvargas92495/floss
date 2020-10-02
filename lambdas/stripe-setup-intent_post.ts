@@ -7,6 +7,7 @@ import {
   toPriority,
 } from "../utils/lambda";
 import axios from "axios";
+import { v4 } from "uuid";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
@@ -46,10 +47,14 @@ export const handler = async (event: APIGatewayEvent) => {
     customer: flossUser.Items[0].client.S,
   });
 
+  const uuid = v4();
   return dynamo
     .putItem({
       Item: {
         uuid: {
+          S: uuid,
+        },
+        stripe: {
           S: intent.id,
         },
         link: {

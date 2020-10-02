@@ -47,7 +47,7 @@ const CreateGithubIssueForm = ({
   const [rewardError, setRewardError] = useState("");
   const [dueDate, setDueDate] = useState(addMonths(new Date(), 1));
   const [dueDateError, setDueDateError] = useState("");
-  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const body = {
     link,
     reward,
@@ -59,32 +59,35 @@ const CreateGithubIssueForm = ({
     },
   };
 
-  const saveIssue = useCallback(
-    () =>
-      reward > 0
-        ? payNow
-          ? axios
-              .post(`${API_URL}/stripe-session`, body, axiosOpts)
-              .then((r) =>
-                stripe.then(
-                  (s) =>
-                    s &&
-                    s.redirectToCheckout({
-                      sessionId: r.data.id as string,
-                    })
-                )
-              )
-              .catch((e) => setError(e.response?.data || e.message))
-          : axios
-              .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
-              .then((r) => setIntent(r.data))
-              .catch((e) => setError(e.response?.data || e.message))
-        : axios
-            .post(`${API_URL}/contract`, body)
-            .then(closeAndFetch)
-            .catch((e) => setError(e.response?.data || e.message)),
-    [closeAndFetch, body, payNow, setError, setIntent]
-  );
+  const saveIssue = useCallback(() => {
+    setMessage("Loading...");
+    if (reward > 0) {
+      if (payNow) {
+        axios
+          .post(`${API_URL}/stripe-session`, body, axiosOpts)
+          .then((r) =>
+            stripe.then(
+              (s) =>
+                s &&
+                s.redirectToCheckout({
+                  sessionId: r.data.id as string,
+                })
+            )
+          )
+          .catch((e) => setMessage(e.response?.data || e.message));
+      } else {
+        axios
+          .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
+          .then((r) => setIntent(r.data))
+          .catch((e) => setMessage(e.response?.data || e.message));
+      }
+    } else {
+      axios
+        .post(`${API_URL}/contract`, body)
+        .then(closeAndFetch)
+        .catch((e) => setMessage(e.response?.data || e.message));
+    }
+  }, [closeAndFetch, body, payNow, setMessage, setIntent]);
 
   const linkOnChange = useCallback(
     (e) => {
@@ -199,7 +202,7 @@ const CreateGithubIssueForm = ({
         />
       </DialogContent>
       <DialogActions>
-        <DialogContentText>{error}</DialogContentText>
+        <DialogContentText>{message}</DialogContentText>
         <Button onClick={handleClose} color="secondary">
           Cancel
         </Button>

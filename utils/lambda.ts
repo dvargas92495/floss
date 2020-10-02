@@ -1,7 +1,6 @@
 import AWS from "aws-sdk";
 import format from "date-fns/format";
 import Stripe from "stripe";
-import { v4 } from "uuid";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -95,44 +94,44 @@ export const getFlossUserByEmail = (email: string) =>
     })
     .promise();
 
-export const activateContractById = (id: string) => {
-  const uuid = v4();
-  return dynamo
-    .getItem({
-      TableName: "FlossContracts",
-      Key: {
-        uuid: {
-          S: id,
+export const activateContractByStripeId = (id: string) => dynamo
+.query({
+  TableName: "FlossContracts",
+  KeyConditionExpression: "stripe = :s",
+  IndexName: "stripe-index",
+  ExpressionAttributeValues: {
+    ":s": {
+      S: id,
+    },
+  },
+})
+.promise()
+.then((r) => r.Items?.length === 1 ?
+  dynamo
+    .putItem({
+      Item: {
+        ...r.Items[0],
+        lifecycle: {
+          S: "active",
         },
       },
+      TableName: "FlossContracts",
     })
     .promise()
-    .then((r) =>
-      dynamo
-        .putItem({
-          Item: {
-            ...r.Item,
-            uuid: {
-              S: uuid,
-            },
-            lifecycle: {
-              S: "active",
-            },
-          },
-          TableName: "FlossContracts",
-        })
-        .promise()
-    )
-    .then(() => ({
-      statusCode: 200,
-      body: JSON.stringify({
-        success: true,
-      }),
-      headers,
-    }))
-    .catch((e) => ({
-      statusCode: 500,
-      body: e.message,
-      headers,
-    }));
-};
+.then(() => ({
+  statusCode: 200,
+  body: JSON.stringify({
+    success: true,
+  }),
+  headers,
+}))
+: {
+  statusCode: 500,
+  body: `Failed to find one contract with stripe id ${id}`,
+  headers,
+})
+.catch((e) => ({
+  statusCode: 500,
+  body: e.message,
+  headers,
+}));

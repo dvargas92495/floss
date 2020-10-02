@@ -1,5 +1,10 @@
 import axios from "axios";
-import { dynamo, getActiveContracts, } from "../utils/lambda";
+import {
+  dynamo,
+  getActiveContracts,
+  parsePriority,
+  stripe,
+} from "../utils/lambda";
 
 export const handler = () =>
   getActiveContracts().then((r) => {
@@ -23,5 +28,29 @@ export const handler = () =>
         );
         return Promise.all(completionPromises);
       })
-      .then((r) => console.log(`Completed ${r.length} Contracts!`));
+      .then((r) => {
+        console.log(`Completed ${r.length} contracts!`);
+        const contractsToCharge = r.filter((c) =>
+          c.Attributes?.stripe.S?.startsWith("seti_")
+        );
+        console.log(
+          `Let's get paid for ${contractsToCharge.length} contracts!`
+        );
+        const stripeSetups = contractsToCharge.map((c) =>
+          stripe.setupIntents
+            .retrieve(c.Attributes?.stripe.S || "")
+            .then((si) => ({
+              amount: parsePriority(c.Attributes).reward || 0,
+              currency: "usd",
+              customer: si.customer as string,
+              payment_method: si.payment_method as string,
+              off_session: true,
+              confirm: true,
+            }))
+        );
+        return Promise.all(stripeSetups);
+      })
+      .then((r) => Promise.all(r.map((pi) => stripe.paymentIntents.create(pi))))
+      .then(() => console.log("Successfully got paid!"))
+      .catch((e) => console.error(e));
   });
