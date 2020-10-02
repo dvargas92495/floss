@@ -87,12 +87,26 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     type = "S"
   }
 
+  attribute {
+    name = "stripe"
+    type = "S"
+  }
+
   global_secondary_index {
     hash_key           = "lifecycle"
     name               = "lifecycle-priority-index"
     non_key_attributes = []
     projection_type    = "ALL"
     range_key          = "priority"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
+  global_secondary_index {
+    hash_key           = "stripe"
+    name               = "stripe-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
     read_capacity      = 0
     write_capacity     = 0
   }
