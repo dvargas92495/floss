@@ -1,5 +1,5 @@
 import axios from "axios";
-import { dynamo, getActiveContracts } from "../utils/lambda";
+import { dynamo, getActiveContracts, } from "../utils/lambda";
 
 export const handler = () =>
   getActiveContracts().then((r) => {
@@ -15,8 +15,7 @@ export const handler = () =>
           link: { S: i.data.html_url },
           uuid: { S: contractsByLink[i.data.html_url].uuid },
           lifecycle: { S: i.data.state },
-          reward: { N: contractsByLink[i.data.html_url].reward },
-          dueDate: { S: contractsByLink[i.data.html_url].dueDate },
+          priority: { S: contractsByLink[i.data.html_url].priority },
         }));
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>

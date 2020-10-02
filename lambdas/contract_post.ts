@@ -1,11 +1,19 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { v4 } from "uuid";
-import { dynamo, headers } from "../utils/lambda";
+import { dynamo, headers, parsePriority, toPriority } from "../utils/lambda";
 import axios from "axios";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const { link, reward, dueDate } = JSON.parse(event.body || "{}");
+  const {
+    link,
+    ...priorityProps
+  }: {
+    link: string;
+    reward: number;
+    dueDate: string;
+  } = JSON.parse(event.body || "{}");
   const uuid = v4();
+  const priority = toPriority(priorityProps);
   return axios(link.replace("github.com", "api.github.com/repos")).then(
     (issue) =>
       issue.data.state === "open"
@@ -18,11 +26,8 @@ export const handler = async (event: APIGatewayEvent) => {
                 link: {
                   S: link,
                 },
-                reward: {
-                  N: `${reward}`,
-                },
-                dueDate: {
-                  S: dueDate,
+                priority: {
+                  S: priority,
                 },
                 lifecycle: {
                   S: "active",
@@ -31,14 +36,13 @@ export const handler = async (event: APIGatewayEvent) => {
               TableName: "FlossContracts",
             })
             .promise()
-            .then(() => ({
+            .then((r) => ({
               statusCode: 200,
               body: JSON.stringify({
                 link,
-                reward,
-                dueDate,
                 uuid,
                 lifecycle: "active",
+                ...parsePriority(r.Attributes),
               }),
               headers,
             }))

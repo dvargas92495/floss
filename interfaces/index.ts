@@ -4,6 +4,7 @@ export type Issue = {
   link: string;
   reward: number;
   uuid: string;
+  createdDate: string;
 };
 
 export type User = {

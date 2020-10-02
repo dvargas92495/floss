@@ -23,7 +23,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
             accessToken,
             avatar_url: r.data.avatar_url,
           })
-        );
+        )
+        .catch((e) => console.error(e.response?.data || e.message));
     }
   }, [user, setUser]);
   return (

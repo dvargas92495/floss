@@ -8,7 +8,7 @@ const IndexPage = () => (
   <Layout title="Floss | FreeLance Open Source Software">
     <Grid container direction="column" alignItems="center">
       <Typography variant="h1">
-        <Logo size={10} />
+        <Logo size={20} />
       </Typography>
       <Typography variant="subtitle1">
         <i>FreeLance Open Source Software</i>

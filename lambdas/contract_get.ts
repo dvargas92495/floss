@@ -1,5 +1,5 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { dynamo, headers } from "../utils/lambda";
+import { dynamo, headers, parsePriority } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) =>
   dynamo
@@ -15,10 +15,9 @@ export const handler = async (event: APIGatewayEvent) =>
     .then((r) => ({
       statusCode: 200,
       body: JSON.stringify({
-        reward: r.Item?.reward.N,
         link: r.Item?.link.S,
-        dueDate: r.Item?.dueDate.S,
         lifecycle: r.Item?.lifecycle.S,
+        ...parsePriority(r.Item),
       }),
       headers,
     }))

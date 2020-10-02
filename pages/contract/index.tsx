@@ -26,6 +26,9 @@ const StaticPropsDetail = () => {
           <Typography variant={"subtitle1"}>
             Due on: {contract.dueDate}
           </Typography>
+          <Typography variant={"subtitle1"}>
+            Created on: {contract.createdDate}
+          </Typography>
         </>
       ) : (
         <Typography variant={"body2"}>Loading...</Typography>

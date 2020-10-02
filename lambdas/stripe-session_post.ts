@@ -1,9 +1,13 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { dynamo, getFlossUserByEmail, headers, stripe } from "../utils/lambda";
+import { dynamo, getFlossUserByEmail, headers, stripe, toPriority } from "../utils/lambda";
 import axios from "axios";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const { link, reward, dueDate } = JSON.parse(event.body || "{}");
+  const { link, reward, dueDate } : {
+    link: string,
+    dueDate: string,
+    reward: number,
+  } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const issue = await axios.get(
     link.replace("github.com", "api.github.com/repos")
@@ -60,11 +64,8 @@ export const handler = async (event: APIGatewayEvent) => {
             link: {
               S: link,
             },
-            reward: {
-              N: `${reward}`,
-            },
-            dueDate: {
-              S: dueDate,
+            priority: {
+              S: toPriority({ reward, dueDate })
             },
             lifecycle: {
               S: "pending",

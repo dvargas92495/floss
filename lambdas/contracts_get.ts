@@ -8,7 +8,7 @@ export const handler = async () =>
       headers,
     }))
     .catch((e) => ({
-      statusCode: 200,
+      statusCode: 500,
       body: e.message,
       headers,
     }));
