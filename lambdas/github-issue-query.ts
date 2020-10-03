@@ -1,30 +1,46 @@
 import axios from "axios";
 import {
   dynamo,
-  getActiveContracts,
   parsePriority,
   stripe,
 } from "../utils/lambda";
 
 export const handler = () =>
-  getActiveContracts().then((r) => {
-    const contractsByLink = Object.fromEntries(r.map((i) => [i.link, i]));
-    const reqs = r.map((i) =>
-      i.link
-        ? axios(i.link.replace("github.com", "api.github.com/repos"))
+dynamo
+.query({
+  TableName: "FlossContracts",
+  KeyConditionExpression: "priority >= :p and lifecycle = :s",
+  IndexName: "lifecycle-priority-index",
+  ExpressionAttributeValues: {
+    ":p": {
+      S: "0000-2020-10-02-2020-10-02",
+    },
+    ":s": {
+      S: "active",
+    },
+  },
+})
+.promise()
+.then((r) => {
+    if(!r.Items) {
+      return;
+    }
+    const contractsByLink = Object.fromEntries(r.Items.map((i) => [i.link.S, i]));
+    const reqs = r.Items.map((i) =>
+      i.link?.S
+        ? axios(i.link.S.replace("github.com", "api.github.com/repos"))
         : Promise.resolve({} as any)
     );
     return Promise.all(reqs)
       .then((issues) => {
         const ghIssues = issues.map((i) => ({
+          ...contractsByLink[i.data.html_url],
           link: { S: i.data.html_url },
-          uuid: { S: contractsByLink[i.data.html_url].uuid },
           lifecycle: { S: i.data.state },
-          priority: { S: contractsByLink[i.data.html_url].priority },
         }));
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>
-          dynamo.putItem({ Item, TableName: "FlossContracts" }).promise()
+          dynamo.putItem({ Item, TableName: "FlossContracts", ReturnValues: 'ALL_OLD' }).promise()
         );
         return Promise.all(completionPromises);
       })
@@ -40,7 +56,7 @@ export const handler = () =>
           stripe.setupIntents
             .retrieve(c.Attributes?.stripe.S || "")
             .then((si) => ({
-              amount: parsePriority(c.Attributes).reward || 0,
+              amount: (parsePriority(c.Attributes).reward || 0)*100,
               currency: "usd",
               customer: si.customer as string,
               payment_method: si.payment_method as string,

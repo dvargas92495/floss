@@ -34,11 +34,18 @@ export const parsePriority = (r?: AWS.DynamoDB.AttributeMap) => {
     return {};
   }
   const priority = r.priority.S;
-  const reward = MAX_REWARD - parseInt(priority.substring(0, MAX_REWARD_LENGTH));
+  const reward =
+    MAX_REWARD - parseInt(priority.substring(0, MAX_REWARD_LENGTH));
   const dueDateStart = MAX_REWARD_LENGTH + 1;
-  const dueDate = priority.substring(dueDateStart, dueDateStart + DATE_FORMAT_LENGTH);
+  const dueDate = priority.substring(
+    dueDateStart,
+    dueDateStart + DATE_FORMAT_LENGTH
+  );
   const createdDateStart = dueDateStart + DATE_FORMAT_LENGTH + 1;
-  const createdDate = priority.substring(createdDateStart, createdDateStart + DATE_FORMAT_LENGTH);
+  const createdDate = priority.substring(
+    createdDateStart,
+    createdDateStart + DATE_FORMAT_LENGTH
+  );
   return { dueDate, reward, createdDate };
 };
 
@@ -49,10 +56,9 @@ export const toPriority = ({
   dueDate: string;
   reward: number;
 }) => {
-  return `${(MAX_REWARD - reward).toString().padStart(4, "0")}-${dueDate}-${format(
-    new Date(),
-    DATE_FORMAT
-  )}`;
+  return `${(MAX_REWARD - reward)
+    .toString()
+    .padStart(4, "0")}-${dueDate}-${format(new Date(), DATE_FORMAT)}`;
 };
 
 export const getActiveContracts = () =>
@@ -76,6 +82,7 @@ export const getActiveContracts = () =>
         r.Items?.map((i) => ({
           uuid: i.uuid.S,
           link: i.link.S,
+          stripe: i.stripe.S,
           ...parsePriority(i),
         })) || []
     );
@@ -94,44 +101,47 @@ export const getFlossUserByEmail = (email: string) =>
     })
     .promise();
 
-export const activateContractByStripeId = (id: string) => dynamo
-.query({
-  TableName: "FlossContracts",
-  KeyConditionExpression: "stripe = :s",
-  IndexName: "stripe-index",
-  ExpressionAttributeValues: {
-    ":s": {
-      S: id,
-    },
-  },
-})
-.promise()
-.then((r) => r.Items?.length === 1 ?
+export const activateContractByStripeId = (id: string) =>
   dynamo
-    .putItem({
-      Item: {
-        ...r.Items[0],
-        lifecycle: {
-          S: "active",
+    .query({
+      TableName: "FlossContracts",
+      KeyConditionExpression: "stripe = :s",
+      IndexName: "stripe-index",
+      ExpressionAttributeValues: {
+        ":s": {
+          S: id,
         },
       },
-      TableName: "FlossContracts",
     })
     .promise()
-.then(() => ({
-  statusCode: 200,
-  body: JSON.stringify({
-    success: true,
-  }),
-  headers,
-}))
-: {
-  statusCode: 500,
-  body: `Failed to find one contract with stripe id ${id}`,
-  headers,
-})
-.catch((e) => ({
-  statusCode: 500,
-  body: e.message,
-  headers,
-}));
+    .then((r) =>
+      r.Items?.length === 1
+        ? dynamo
+            .putItem({
+              Item: {
+                ...r.Items[0],
+                lifecycle: {
+                  S: "active",
+                },
+              },
+              TableName: "FlossContracts",
+            })
+            .promise()
+            .then(() => ({
+              statusCode: 200,
+              body: JSON.stringify({
+                success: true,
+              }),
+              headers,
+            }))
+        : {
+            statusCode: 500,
+            body: `Failed to find one contract with stripe id ${id}`,
+            headers,
+          }
+    )
+    .catch((e) => ({
+      statusCode: 500,
+      body: e.message,
+      headers,
+    }));
