@@ -6,11 +6,13 @@ import axios from "axios";
 export const handler = async (event: APIGatewayEvent) => {
   const {
     link,
+    createdBy,
     ...priorityProps
   }: {
     link: string;
     reward: number;
     dueDate: string;
+    createdBy: string;
   } = JSON.parse(event.body || "{}");
   const uuid = v4();
   const priority = toPriority(priorityProps);
@@ -31,6 +33,9 @@ export const handler = async (event: APIGatewayEvent) => {
                 },
                 lifecycle: {
                   S: "active",
+                },
+                createdBy: {
+                  S: createdBy,
                 },
               },
               TableName: "FlossContracts",

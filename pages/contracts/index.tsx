@@ -52,6 +52,7 @@ const CreateGithubIssueForm = ({
     link,
     reward,
     dueDate: format(dueDate, "yyyy-MM-dd"),
+    createdBy: user?.email,
   };
   const axiosOpts = {
     headers: {
@@ -125,6 +126,7 @@ const CreateGithubIssueForm = ({
   const rewardOnBlur = useCallback(
     () =>
       (reward < 0 && setRewardError("Reward must be greater than 0")) ||
+      (reward > 9999 && setRewardError("Reward must be less than 10,000")) ||
       (reward > 0 &&
         !user &&
         setRewardError("Must be signed in for a non zero reward")),

@@ -17,6 +17,7 @@ export const handler = async (event: APIGatewayEvent) =>
       body: JSON.stringify({
         link: r.Item?.link.S,
         lifecycle: r.Item?.lifecycle.S,
+        createdBy: r.Item?.createdBy.S,
         ...parsePriority(r.Item),
       }),
       headers,

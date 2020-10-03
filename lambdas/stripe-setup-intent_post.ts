@@ -14,9 +14,13 @@ export const handler = async (event: APIGatewayEvent) => {
     link,
     reward,
     dueDate,
-  }: { link: string; reward: number; dueDate: string } = JSON.parse(
-    event.body || "{}"
-  );
+    createdBy,
+  }: {
+    link: string;
+    reward: number;
+    dueDate: string;
+    createdBy: string;
+  } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const issue = await axios.get(
     link.replace("github.com", "api.github.com/repos")
@@ -65,6 +69,9 @@ export const handler = async (event: APIGatewayEvent) => {
         },
         priority: {
           S: toPriority({ reward, dueDate }),
+        },
+        createdBy: {
+          S: createdBy,
         },
       },
       TableName: "FlossContracts",

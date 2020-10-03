@@ -1,13 +1,25 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { dynamo, getFlossUserByEmail, headers, stripe, toPriority } from "../utils/lambda";
+import {
+  dynamo,
+  getFlossUserByEmail,
+  headers,
+  stripe,
+  toPriority,
+} from "../utils/lambda";
 import axios from "axios";
 import { v4 } from "uuid";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const { link, reward, dueDate } : {
-    link: string,
-    dueDate: string,
-    reward: number,
+  const {
+    link,
+    reward,
+    dueDate,
+    createdBy,
+  }: {
+    link: string;
+    dueDate: string;
+    reward: number;
+    createdBy: string;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const issue = await axios.get(
@@ -70,10 +82,13 @@ export const handler = async (event: APIGatewayEvent) => {
               S: link,
             },
             priority: {
-              S: toPriority({ reward, dueDate })
+              S: toPriority({ reward, dueDate }),
             },
             lifecycle: {
               S: "pending",
+            },
+            createdBy: {
+              S: createdBy,
             },
           },
           TableName: "FlossContracts",

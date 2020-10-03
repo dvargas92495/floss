@@ -1,31 +1,19 @@
 import axios from "axios";
 import {
   dynamo,
+  getActiveContracts,
   parsePriority,
   stripe,
 } from "../utils/lambda";
 
 export const handler = () =>
-dynamo
-.query({
-  TableName: "FlossContracts",
-  KeyConditionExpression: "priority >= :p and lifecycle = :s",
-  IndexName: "lifecycle-priority-index",
-  ExpressionAttributeValues: {
-    ":p": {
-      S: "0000-2020-10-02-2020-10-02",
-    },
-    ":s": {
-      S: "active",
-    },
-  },
-})
-.promise()
-.then((r) => {
-    if(!r.Items) {
+  getActiveContracts().then((r) => {
+    if (!r.Items) {
       return;
     }
-    const contractsByLink = Object.fromEntries(r.Items.map((i) => [i.link.S, i]));
+    const contractsByLink = Object.fromEntries(
+      r.Items.map((i) => [i.link.S, i])
+    );
     const reqs = r.Items.map((i) =>
       i.link?.S
         ? axios(i.link.S.replace("github.com", "api.github.com/repos"))
@@ -40,7 +28,13 @@ dynamo
         }));
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>
-          dynamo.putItem({ Item, TableName: "FlossContracts", ReturnValues: 'ALL_OLD' }).promise()
+          dynamo
+            .putItem({
+              Item,
+              TableName: "FlossContracts",
+              ReturnValues: "ALL_OLD",
+            })
+            .promise()
         );
         return Promise.all(completionPromises);
       })
@@ -56,7 +50,7 @@ dynamo
           stripe.setupIntents
             .retrieve(c.Attributes?.stripe.S || "")
             .then((si) => ({
-              amount: (parsePriority(c.Attributes).reward || 0)*100,
+              amount: (parsePriority(c.Attributes).reward || 0) * 100,
               currency: "usd",
               customer: si.customer as string,
               payment_method: si.payment_method as string,

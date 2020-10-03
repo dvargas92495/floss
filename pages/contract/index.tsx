@@ -27,7 +27,7 @@ const StaticPropsDetail = () => {
             Due on: {contract.dueDate}
           </Typography>
           <Typography variant={"subtitle1"}>
-            Created on: {contract.createdDate}
+            Created by {contract.createdBy} on {contract.createdDate}
           </Typography>
         </>
       ) : (

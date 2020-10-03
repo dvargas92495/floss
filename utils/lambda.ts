@@ -76,16 +76,7 @@ export const getActiveContracts = () =>
         },
       },
     })
-    .promise()
-    .then(
-      (r) =>
-        r.Items?.map((i) => ({
-          uuid: i.uuid.S,
-          link: i.link.S,
-          stripe: i.stripe.S,
-          ...parsePriority(i),
-        })) || []
-    );
+    .promise();
 
 export const getFlossUserByEmail = (email: string) =>
   dynamo
