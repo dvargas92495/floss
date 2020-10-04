@@ -4,6 +4,7 @@ import Stripe from "stripe";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
+const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2020-08-27",
@@ -116,8 +117,31 @@ export const activateContractByStripeId = (id: string) =>
                 },
               },
               TableName: "FlossContracts",
+              ReturnValues: "ALL_OLD",
             })
             .promise()
+            .then((r) =>
+              ses
+                .sendEmail({
+                  Destination: {
+                    ToAddresses: ["dvargas92495@gmail.com"],
+                  },
+                  Message: {
+                    Body: {
+                      Text: {
+                        Charset: "UTF-8",
+                        Data: `Check out the contract at https://floss.davidvargas.me/contract?uuid=${r.Attributes?.uuid.S}`,
+                      },
+                    },
+                    Subject: {
+                      Charset: "UTF-8",
+                      Data: `New Floss Contract from ${r.Attributes?.createdBy.S} is Active`,
+                    },
+                  },
+                  Source: "no-reply@floss.davidvargas.me",
+                })
+                .promise()
+            )
             .then(() => ({
               statusCode: 200,
               body: JSON.stringify({
