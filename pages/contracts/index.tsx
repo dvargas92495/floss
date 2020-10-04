@@ -12,10 +12,11 @@ import TextField from "@material-ui/core/TextField";
 import DialogActions from "@material-ui/core/DialogActions";
 import addMonths from "date-fns/addMonths";
 import format from "date-fns/format";
+import parse from "date-fns/parse";
 import Paper from "@material-ui/core/Paper";
 import { API_URL } from "../../utils/client";
 import { loadStripe } from "@stripe/stripe-js";
-import isAfter from "date-fns/isAfter";
+import isBefore from "date-fns/isBefore";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Switch from "@material-ui/core/Switch";
 import UserContext from "../../components/UserContext";
@@ -135,7 +136,7 @@ const CreateGithubIssueForm = ({
 
   const dueDateOnChange = useCallback(
     (e) => {
-      setDueDate(new Date(e.target.value));
+      setDueDate(parse(e.target.value, 'yyyy-MM-dd', new Date()));
       setDueDateError("");
     },
     [setDueDate, setDueDateError]
@@ -143,7 +144,7 @@ const CreateGithubIssueForm = ({
 
   const dueDateOnBlur = useCallback(
     () =>
-      !isAfter(dueDate, new Date()) &&
+      !isBefore(new Date(), dueDate) &&
       setDueDateError("Due Date must be after today"),
     [dueDate, setDueDateError]
   );

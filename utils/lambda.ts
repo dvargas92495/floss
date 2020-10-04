@@ -26,7 +26,7 @@ export const headers = {
  */
 export const MAX_REWARD = 9999;
 const MAX_REWARD_LENGTH = MAX_REWARD.toString().length;
-const DATE_FORMAT = "yyyy-MM-dd";
+export const DATE_FORMAT = "yyyy-MM-dd";
 const DATE_FORMAT_LENGTH = DATE_FORMAT.toString().length;
 
 export const parsePriority = (r?: AWS.DynamoDB.AttributeMap) => {
