@@ -1,6 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
   dynamo,
+  getEmailFromHeaders,
   getFlossUserByEmail,
   headers,
   stripe,
@@ -14,12 +15,10 @@ export const handler = async (event: APIGatewayEvent) => {
     link,
     reward,
     dueDate,
-    createdBy,
   }: {
     link: string;
     dueDate: string;
     reward: number;
-    createdBy: string;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const issue = await axios.get(
@@ -33,16 +32,12 @@ export const handler = async (event: APIGatewayEvent) => {
     };
   }
 
-  const user = await axios.get("https://api.github.com/user", {
-    headers: {
-      Authorization: reqHeaders.Authorization,
-    },
-  });
-  const flossUser = await getFlossUserByEmail(user.data.email);
+  const createdBy = await getEmailFromHeaders(reqHeaders.Authorization);
+  const flossUser = await getFlossUserByEmail(createdBy);
   if (flossUser.Count === 0 || !flossUser.Items) {
     return {
       statusCode: 500,
-      body: `Could not find Floss user for ${user.data.email}`,
+      body: `Could not find Floss user for ${createdBy}`,
       headers,
     };
   }

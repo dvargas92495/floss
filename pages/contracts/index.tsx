@@ -26,10 +26,17 @@ import {
   useElements,
   useStripe,
 } from "@stripe/react-stripe-js";
+import { useMemo } from "react";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import MenuItem from "@material-ui/core/MenuItem";
+import InputLabel from "@material-ui/core/InputLabel";
+import Grid from "@material-ui/core/Grid";
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
 type StripeSetupIntent = { id: string; client_secret: string };
+type StripePaymentMethod = { id: string; brand: string; last4: number };
 
 const CreateGithubIssueForm = ({
   handleClose,
@@ -44,7 +51,11 @@ const CreateGithubIssueForm = ({
   const [link, setLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [reward, setReward] = useState(100);
-  const [payNow, setPayNow] = useState(true);
+  const [payNow, setPayNow] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethodOptions, setPaymentMethodOptions] = useState<
+    StripePaymentMethod[]
+  >([]);
   const [rewardError, setRewardError] = useState("");
   const [dueDate, setDueDate] = useState(addMonths(new Date(), 1));
   const [dueDateError, setDueDateError] = useState("");
@@ -53,13 +64,26 @@ const CreateGithubIssueForm = ({
     link,
     reward,
     dueDate: format(dueDate, "yyyy-MM-dd"),
-    createdBy: user?.email,
   };
-  const axiosOpts = {
-    headers: {
-      Authorization: `token ${user?.accessToken}`,
-    },
-  };
+  const axiosOpts = useMemo(
+    () =>
+      user?.accessToken
+        ? {
+            headers: {
+              Authorization: `token ${user?.accessToken}`,
+            },
+          }
+        : undefined,
+    [user?.accessToken]
+  );
+
+  useEffect(() => {
+    if (axiosOpts) {
+      axios
+        .get(`${API_URL}/stripe-payment-methods`, axiosOpts)
+        .then((r) => setPaymentMethodOptions(r.data));
+    }
+  }, [axiosOpts]);
 
   const saveIssue = useCallback(() => {
     setMessage("Loading...");
@@ -136,7 +160,7 @@ const CreateGithubIssueForm = ({
 
   const dueDateOnChange = useCallback(
     (e) => {
-      setDueDate(parse(e.target.value, 'yyyy-MM-dd', new Date()));
+      setDueDate(parse(e.target.value, "yyyy-MM-dd", new Date()));
       setDueDateError("");
     },
     [setDueDate, setDueDateError]
@@ -152,6 +176,11 @@ const CreateGithubIssueForm = ({
   const payNowOnChange = useCallback((e) => setPayNow(e.target.checked), [
     setPayNow,
   ]);
+
+  const paymentMethodOnChange = useCallback(
+    (e) => setPaymentMethod(e.target.value),
+    [setPaymentMethod]
+  );
 
   return (
     <>
@@ -173,36 +202,76 @@ const CreateGithubIssueForm = ({
           helperText={linkError}
           onBlur={linkOnBlur}
         />
-        <TextField
-          type={"number"}
-          error={!!rewardError}
-          required
-          variant="filled"
-          label={"Reward"}
-          placeholder={"100"}
-          value={reward}
-          onChange={rewardOnChange}
-          onBlur={rewardOnBlur}
-          helperText={rewardError}
-        />
-        <TextField
-          type={"date"}
-          required
-          error={!!dueDateError}
-          variant="filled"
-          label={"Due"}
-          value={format(dueDate, "yyyy-MM-dd")}
-          onChange={dueDateOnChange}
-          onBlur={dueDateOnBlur}
-          helperText={dueDateError}
-        />
-        <FormControlLabel
-          control={
-            <Switch checked={payNow} onChange={payNowOnChange} name="payNow" />
-          }
-          label={payNow ? "Pay Now" : "Pay On Close"}
-          labelPlacement={"bottom"}
-        />
+        <Grid container spacing={1}>
+          <Grid item xs={5}>
+            <TextField
+              type={"number"}
+              error={!!rewardError}
+              required
+              variant="filled"
+              label={"Reward"}
+              placeholder={"100"}
+              value={reward}
+              onChange={rewardOnChange}
+              onBlur={rewardOnBlur}
+              helperText={rewardError}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={7}>
+            <TextField
+              type={"date"}
+              required
+              error={!!dueDateError}
+              variant="filled"
+              label={"Due"}
+              value={format(dueDate, "yyyy-MM-dd")}
+              onChange={dueDateOnChange}
+              onBlur={dueDateOnBlur}
+              helperText={dueDateError}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={3}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={payNow}
+                  onChange={payNowOnChange}
+                  name="payNow"
+                />
+              }
+              label={payNow ? "Pay Now" : "Pay On Close"}
+              labelPlacement={"top"}
+              style={{
+                width: "100%",
+                margin: 0,
+              }}
+            />
+          </Grid>
+          <Grid item xs={9}>
+            <FormControl fullWidth>
+              <InputLabel shrink id="payment-method-input-label">
+                Payment Method
+              </InputLabel>
+              <Select
+                labelId="payment-method-input-label"
+                id="payment-method-input"
+                value={paymentMethod}
+                onChange={paymentMethodOnChange}
+                displayEmpty
+                fullWidth
+              >
+                <MenuItem value="">New Card</MenuItem>
+                {paymentMethodOptions.map((pm: StripePaymentMethod) => (
+                  <MenuItem value={pm.id} key={pm.id}>
+                    {pm.brand} ends in {pm.last4}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+        </Grid>
       </DialogContent>
       <DialogActions>
         <DialogContentText>{message}</DialogContentText>

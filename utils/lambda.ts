@@ -1,6 +1,7 @@
 import AWS from "aws-sdk";
 import format from "date-fns/format";
 import Stripe from "stripe";
+import axios from "axios";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -160,3 +161,12 @@ export const activateContractByStripeId = (id: string) =>
       body: e.message,
       headers,
     }));
+
+export const getEmailFromHeaders = async (Authorization: string) => {
+  const user = await axios.get("https://api.github.com/user", {
+    headers: {
+      Authorization,
+    },
+  });
+  return user.data.email;
+};
