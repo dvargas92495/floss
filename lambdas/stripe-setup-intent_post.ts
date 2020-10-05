@@ -15,10 +15,12 @@ export const handler = async (event: APIGatewayEvent) => {
     link,
     reward,
     dueDate,
+    paymentMethod,
   }: {
     link: string;
     reward: number;
     dueDate: string;
+    paymentMethod: string;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const issue = await axios.get(
@@ -43,42 +45,64 @@ export const handler = async (event: APIGatewayEvent) => {
   }
 
   const customer = flossUser.Items[0].client.S || "";
-  const intent = await stripe.setupIntents.create({
-    customer,
-  });
-
   const uuid = v4();
-  return dynamo
-    .putItem({
-      Item: {
-        uuid: {
-          S: uuid,
-        },
-        stripe: {
-          S: intent.id,
-        },
-        link: {
-          S: link,
-        },
-        lifecycle: {
-          S: "pending",
-        },
-        priority: {
-          S: toPriority({ reward, dueDate }),
-        },
-        createdBy: {
-          S: createdBy,
-        },
+  const putItemProps = (intentId: string) => ({
+    Item: {
+      uuid: {
+        S: uuid,
       },
-      TableName: "FlossContracts",
-    })
-    .promise()
-    .then(() => ({
-      statusCode: 200,
-      body: JSON.stringify({
-        client_secret: intent.client_secret,
-        id: intent.id,
-      }),
-      headers,
-    }));
+      stripe: {
+        S: intentId,
+      },
+      link: {
+        S: link,
+      },
+      lifecycle: {
+        S: paymentMethod ? "active" : "pending",
+      },
+      priority: {
+        S: toPriority({ reward, dueDate }),
+      },
+      createdBy: {
+        S: createdBy,
+      },
+    },
+    TableName: "FlossContracts",
+  });
+  return paymentMethod
+    ? await stripe.setupIntents
+        .create({
+          customer,
+          payment_method: paymentMethod,
+        })
+        .then((intent) =>
+          dynamo
+            .putItem(putItemProps(intent.id))
+            .promise()
+            .then(() => ({
+              statusCode: 200,
+              body: JSON.stringify({
+                active: true,
+              }),
+              headers,
+            }))
+        )
+    : await stripe.setupIntents
+        .create({
+          customer,
+        })
+        .then((intent) =>
+          dynamo
+            .putItem(putItemProps(intent.id))
+            .promise()
+            .then(() => ({
+              statusCode: 200,
+              body: JSON.stringify({
+                client_secret: intent.client_secret,
+                id: intent.id,
+                active: false,
+              }),
+              headers,
+            }))
+        );
 };

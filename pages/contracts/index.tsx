@@ -64,6 +64,7 @@ const CreateGithubIssueForm = ({
     link,
     reward,
     dueDate: format(dueDate, "yyyy-MM-dd"),
+    paymentMethod,
   };
   const axiosOpts = useMemo(
     () =>
@@ -91,20 +92,24 @@ const CreateGithubIssueForm = ({
       if (payNow) {
         axios
           .post(`${API_URL}/stripe-session`, body, axiosOpts)
-          .then((r) =>
-            stripe.then(
-              (s) =>
-                s &&
-                s.redirectToCheckout({
-                  sessionId: r.data.id as string,
-                })
-            )
-          )
+          .then((r) => {
+            if (r.data.active) {
+              closeAndFetch();
+            } else {
+              stripe.then(
+                (s) =>
+                  s &&
+                  s.redirectToCheckout({
+                    sessionId: r.data.id as string,
+                  })
+              );
+            }
+          })
           .catch((e) => setMessage(e.response?.data || e.message));
       } else {
         axios
           .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
-          .then((r) => setIntent(r.data))
+          .then((r) => (r.data.active ? closeAndFetch() : setIntent(r.data)))
           .catch((e) => setMessage(e.response?.data || e.message));
       }
     } else {

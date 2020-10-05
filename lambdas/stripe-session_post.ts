@@ -15,10 +15,12 @@ export const handler = async (event: APIGatewayEvent) => {
     link,
     reward,
     dueDate,
+    paymentMethod,
   }: {
     link: string;
     dueDate: string;
     reward: number;
+    paymentMethod: string;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const issue = await axios.get(
@@ -42,57 +44,73 @@ export const handler = async (event: APIGatewayEvent) => {
     };
   }
   const uuid = v4();
-  return stripe.checkout.sessions
-    .create({
-      customer: flossUser.Items[0].client.S,
-      payment_method_types: ["card"],
-      line_items: [
-        {
-          price_data: {
-            currency: "usd",
-            product_data: {
-              name: "Github Issue",
-              description: link,
-            },
-            unit_amount: reward * 100,
-          },
-          quantity: 1,
-        },
-      ],
-      mode: "payment",
-      success_url: `${reqHeaders.Origin}/contracts?success=true`,
-      cancel_url: `${reqHeaders.Origin}/contracts?cancel=true`,
-    })
-    .then((session) =>
+  const customer = flossUser.Items[0].client.S;
+  const putItemProps = (sessionId: string) => ({
+    Item: {
+      uuid: {
+        S: uuid,
+      },
+      stripe: {
+        S: sessionId,
+      },
+      link: {
+        S: link,
+      },
+      priority: {
+        S: toPriority({ reward, dueDate }),
+      },
+      lifecycle: {
+        S: paymentMethod ? "active" : "pending",
+      },
+      createdBy: {
+        S: createdBy,
+      },
+    },
+    TableName: "FlossContracts",
+  });
+  return paymentMethod
+    ? stripe.paymentIntents.create({
+        customer,
+        amount: reward * 100,
+        currency: "usd",
+      }).then((paymentIntent) =>
       dynamo
-        .putItem({
-          Item: {
-            uuid: {
-              S: uuid,
-            },
-            stripe: {
-              S: session.payment_intent as string,
-            },
-            link: {
-              S: link,
-            },
-            priority: {
-              S: toPriority({ reward, dueDate }),
-            },
-            lifecycle: {
-              S: "pending",
-            },
-            createdBy: {
-              S: createdBy,
-            },
-          },
-          TableName: "FlossContracts",
-        })
+        .putItem(putItemProps(paymentIntent.id))
         .promise()
         .then(() => ({
           statusCode: 200,
-          body: JSON.stringify({ id: session.id }),
+          body: JSON.stringify({ active: true }),
           headers,
         }))
-    );
+    : stripe.checkout.sessions
+        .create({
+          customer,
+          payment_method_types: ["card"],
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name: "Github Issue",
+                  description: link,
+                },
+                unit_amount: reward * 100,
+              },
+              quantity: 1,
+            },
+          ],
+          mode: "payment",
+          success_url: `${reqHeaders.Origin}/contracts?success=true`,
+          cancel_url: `${reqHeaders.Origin}/contracts?cancel=true`,
+        })
+        .then((session) =>
+          dynamo
+            .putItem(putItemProps(session.payment_intent as string))
+            .promise()
+            .then(() => ({
+              statusCode: 200,
+              body: JSON.stringify({ id: session.id, active: false }),
+              headers,
+            }))
+        );
 };
