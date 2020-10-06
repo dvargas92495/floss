@@ -92,6 +92,20 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     type = "S"
   }
 
+  attribute {
+    name = "link"
+    type = "S"
+  }
+
+  global_secondary_index {
+    hash_key           = "link"
+    name               = "link-index"
+    non_key_attributes = []
+    projection_type    = "KEYS_ONLY"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
   global_secondary_index {
     hash_key           = "lifecycle"
     name               = "lifecycle-priority-index"
