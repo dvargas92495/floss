@@ -80,6 +80,20 @@ export const getActiveContracts = () =>
     })
     .promise();
 
+export const getContractByLink = (link: string) =>
+  dynamo
+    .query({
+      TableName: "FlossContracts",
+      KeyConditionExpression: "link = :l",
+      IndexName: "link-index",
+      ExpressionAttributeValues: {
+        ":l": {
+          S: link,
+        },
+      },
+    })
+    .promise();
+
 export const getFlossUserByEmail = (email: string) =>
   dynamo
     .query({

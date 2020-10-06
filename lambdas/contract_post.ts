@@ -1,6 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { v4 } from "uuid";
-import { dynamo, headers, parsePriority, toPriority } from "../utils/lambda";
+import { dynamo, getContractByLink, headers, parsePriority, toPriority } from "../utils/lambda";
 import axios from "axios";
 
 export const handler = async (event: APIGatewayEvent) => {
@@ -12,6 +12,15 @@ export const handler = async (event: APIGatewayEvent) => {
     reward: number;
     dueDate: string;
   } = JSON.parse(event.body || "{}");
+  const contractByLink = await getContractByLink(link);
+  if (!!contractByLink?.Count && contractByLink.Count > 0) {
+    return {
+      statusCode: 400,
+      body: `Contract already exists with ${link}`,
+      headers,
+    }
+  }
+  
   const uuid = v4();
   const priority = toPriority(priorityProps);
   return axios(link.replace("github.com", "api.github.com/repos")).then(

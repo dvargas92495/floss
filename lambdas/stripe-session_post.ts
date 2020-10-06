@@ -1,6 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
   dynamo,
+  getContractByLink,
   getEmailFromHeaders,
   getFlossUserByEmail,
   headers,
@@ -23,6 +24,15 @@ export const handler = async (event: APIGatewayEvent) => {
     paymentMethod: string;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
+  const contractByLink = await getContractByLink(link);
+  if (!!contractByLink?.Count && contractByLink.Count > 0) {
+    return {
+      statusCode: 400,
+      body: `Contract already exists with ${link}`,
+      headers,
+    };
+  }
+
   const issue = await axios.get(
     link.replace("github.com", "api.github.com/repos")
   );
@@ -69,19 +79,22 @@ export const handler = async (event: APIGatewayEvent) => {
     TableName: "FlossContracts",
   });
   return paymentMethod
-    ? stripe.paymentIntents.create({
-        customer,
-        amount: reward * 100,
-        currency: "usd",
-      }).then((paymentIntent) =>
-      dynamo
-        .putItem(putItemProps(paymentIntent.id))
-        .promise()
-        .then(() => ({
-          statusCode: 200,
-          body: JSON.stringify({ active: true }),
-          headers,
-        }))
+    ? stripe.paymentIntents
+        .create({
+          customer,
+          amount: reward * 100,
+          currency: "usd",
+        })
+        .then((paymentIntent) =>
+          dynamo
+            .putItem(putItemProps(paymentIntent.id))
+            .promise()
+            .then(() => ({
+              statusCode: 200,
+              body: JSON.stringify({ active: true }),
+              headers,
+            }))
+        )
     : stripe.checkout.sessions
         .create({
           customer,
