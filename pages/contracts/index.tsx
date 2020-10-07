@@ -1,10 +1,16 @@
 import Layout from "../../components/Layout";
 import List from "../../components/ContractList";
 import Typography from "@material-ui/core/Typography";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
-import React, { useEffect, useState, useCallback, useContext } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useContext,
+  useRef,
+} from "react";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
@@ -32,20 +38,25 @@ import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import InputLabel from "@material-ui/core/InputLabel";
 import Grid from "@material-ui/core/Grid";
+import { Container } from "@material-ui/core";
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
 type StripeSetupIntent = { id: string; client_secret: string };
 type StripePaymentMethod = { id: string; brand: string; last4: number };
 
-const CreateGithubIssueForm = ({
+const CreateGithubContractForm = ({
   handleClose,
   setIntent,
   closeAndFetch,
+  isProject,
+  linkRef,
 }: {
   handleClose: () => void;
   setIntent: (intent: StripeSetupIntent) => void;
   closeAndFetch: () => void;
+  isProject: boolean;
+  linkRef: React.MutableRefObject<HTMLInputElement | undefined>;
 }) => {
   const { user } = useContext(UserContext);
   const [link, setLink] = useState("");
@@ -128,6 +139,10 @@ const CreateGithubIssueForm = ({
     [setLink, setLinkError]
   );
 
+  const linkOnFocus = useCallback(() => {
+    setLinkError("");
+  }, [setLinkError]);
+
   const linkOnBlur = useCallback(() => {
     const replaceText = "https://github.com";
     if (!link.startsWith(replaceText)) {
@@ -135,15 +150,21 @@ const CreateGithubIssueForm = ({
       return;
     }
 
-    axios
-      .get(link.replace(replaceText, "https://api.github.com/repos"))
-      .then(
-        (issue) =>
-          issue.data.state !== "open" &&
-          setLinkError(`Issue at ${link} is ${issue.data.state}`)
-      )
-      .catch((e) => setLinkError(e.response?.data?.message || e.message));
-  }, [link, setLinkError]);
+    if (!isProject) {
+      axios
+        .get(link.replace(replaceText, "https://api.github.com/repos"), {
+          headers: {
+            Accept: "application/vnd.github.inertia-preview+json",
+          },
+        })
+        .then(
+          (issue: AxiosResponse<{ state: string }>) =>
+            issue.data.state !== "open" &&
+            setLinkError(`Issue at ${link} is ${issue.data.state}`)
+        )
+        .catch((e) => setLinkError(e.response?.data?.message || e.message));
+    }
+  }, [link, setLinkError, isProject]);
 
   const rewardOnChange = useCallback(
     (e) => {
@@ -197,15 +218,19 @@ const CreateGithubIssueForm = ({
           autoFocus
           error={!!linkError}
           margin="dense"
-          label="Github Issue Link"
+          label={`Github ${isProject ? "Project" : "Issue"} Link`}
           fullWidth
           required
           variant="filled"
-          placeholder={"https://github.com/{owner}/{repo}/issues/{number}"}
+          placeholder={`https://github.com/{owner}/{repo}/${
+            isProject ? "projects" : "issues"
+          }/{number}`}
           value={link}
           onChange={linkOnChange}
           helperText={linkError}
           onBlur={linkOnBlur}
+          onFocus={linkOnFocus}
+          inputRef={linkRef}
         />
         <Grid container spacing={1}>
           <Grid item xs={5}>
@@ -370,12 +395,14 @@ const StripeIntent = ({
   </Elements>
 );
 
-const CreateGithubIssueDialog = ({
+const CreateGithubContractDialog = ({
   fetchContracts,
 }: {
   fetchContracts: () => void;
 }) => {
   const [open, setOpen] = useState(false);
+  const [isProject, setIsProject] = useState(false);
+  const linkRef = useRef<HTMLInputElement>();
   const [intent, setIntent] = useState<StripeSetupIntent>();
   const handleOpen = useCallback(() => setOpen(true), [setOpen]);
   const handleClose = useCallback(() => setOpen(false), [setOpen]);
@@ -384,11 +411,18 @@ const CreateGithubIssueDialog = ({
     handleClose();
     fetchContracts();
   }, [handleClose, fetchContracts]);
+  const isProjectOnChange = useCallback(
+    (e) => {
+      setIsProject(e.target.checked);
+      linkRef?.current?.focus();
+    },
+    [setIsProject, linkRef]
+  );
 
   return (
     <>
       <Button color="secondary" variant="contained" onClick={handleOpen}>
-        ADD ISSUE
+        Create Contract
       </Button>
       <Dialog
         open={open}
@@ -396,7 +430,12 @@ const CreateGithubIssueDialog = ({
         aria-labelledby="issue-form-title"
       >
         <DialogTitle id="issue-form-title">
-          Create Github Issue Contract
+          Create Github {isProject ? "Project" : "Issue"} Contract
+          <Switch
+            checked={isProject}
+            onChange={isProjectOnChange}
+            name="isProject"
+          />
         </DialogTitle>
         {intent ? (
           <StripeIntent
@@ -405,10 +444,12 @@ const CreateGithubIssueDialog = ({
             handleClose={closeAndFetch}
           />
         ) : (
-          <CreateGithubIssueForm
+          <CreateGithubContractForm
             handleClose={handleClose}
             setIntent={setIntent}
             closeAndFetch={closeAndFetch}
+            isProject={isProject}
+            linkRef={linkRef}
           />
         )}
       </Dialog>
@@ -446,16 +487,28 @@ const WithStaticProps = () => {
   }, [setMessage]);
   return (
     <Layout title="Contract List | Floss">
-      <Typography variant="h1">Contract List</Typography>
-      <Typography variant="subtitle1">{message}</Typography>
-      <Paper variant={"outlined"}>
-        {loading ? (
-          <Typography variant={"body2"}>{loading}</Typography>
-        ) : (
-          <List items={items} />
-        )}
-      </Paper>
-      <CreateGithubIssueDialog fetchContracts={fetchContracts} />
+      <Container maxWidth={"lg"}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography variant="h1">Contract List</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant="subtitle1">{message}</Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Paper variant={"outlined"}>
+              {loading ? (
+                <Typography variant={"body2"}>{loading}</Typography>
+              ) : (
+                <List items={items} />
+              )}
+            </Paper>
+          </Grid>
+          <Grid item xs={12}>
+            <CreateGithubContractDialog fetchContracts={fetchContracts} />
+          </Grid>
+        </Grid>
+      </Container>
     </Layout>
   );
 };

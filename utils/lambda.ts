@@ -1,7 +1,7 @@
 import AWS from "aws-sdk";
 import format from "date-fns/format";
 import Stripe from "stripe";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -183,4 +183,53 @@ export const getEmailFromHeaders = async (Authorization: string) => {
     },
   });
   return user.data.email;
+};
+
+type GithubModel = { html_url: string; state: "open" | "closed" };
+
+export const getAxiosByGithubLink = async (link?: string) => {
+  if (!link) {
+    return {} as GithubModel;
+  }
+  const apiLink = link.replace("github.com", "api.github.com/repos");
+  const isProject = apiLink.indexOf("/projects/") > -1;
+  const axiosUrl = isProject
+    ? apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length)
+    : apiLink;
+  if (isProject) {
+    const getProjects = axios.get(axiosUrl, {
+      headers: {
+        Accept: 'application/vnd.github.inertia-preview+json"',
+        Authorization: `token ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`,
+      },
+    }) as Promise<AxiosResponse<GithubModel[]>>;
+    return getProjects.then(
+      (projects) =>
+        projects.data.find((p) => p.html_url === link) || ({} as GithubModel)
+    );
+  } else {
+    const getIssue = axios.get(axiosUrl) as Promise<AxiosResponse<GithubModel>>;
+    return getIssue.then((r) => r.data);
+  }
+};
+
+export const validateGithubLink = async (link: string) => {
+  const contractByLink = await getContractByLink(link);
+  if (!!contractByLink?.Count && contractByLink.Count > 0) {
+    return {
+      statusCode: 400,
+      body: `Contract already exists with ${link}`,
+      headers,
+    };
+  }
+  const response = await getAxiosByGithubLink(link);
+  if (response?.state !== "open") {
+    return {
+      statusCode: 400,
+      body: `${link} is not open`,
+      headers,
+    };
+  }
+
+  return {};
 };

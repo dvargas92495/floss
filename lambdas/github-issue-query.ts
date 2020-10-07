@@ -1,8 +1,8 @@
-import axios from "axios";
 import {
   DATE_FORMAT,
   dynamo,
   getActiveContracts,
+  getAxiosByGithubLink,
   parsePriority,
   stripe,
 } from "../utils/lambda";
@@ -25,17 +25,13 @@ export const handler = () =>
     const contractsByLink = Object.fromEntries(
       r.Items.map((i) => [i.link.S, i])
     );
-    const reqs = r.Items.map((i) =>
-      i.link?.S
-        ? axios(i.link.S.replace("github.com", "api.github.com/repos"))
-        : Promise.resolve({} as any)
-    );
+    const reqs = r.Items.map((i) => getAxiosByGithubLink(i.link?.S));
     return Promise.all(reqs)
       .then(async (issues) => {
         const ghIssues = issues.map((i) => ({
-          ...contractsByLink[i.data.html_url],
-          link: { S: i.data.html_url },
-          lifecycle: { S: i.data.state },
+          ...contractsByLink[i.html_url],
+          link: { S: i.html_url },
+          lifecycle: { S: i.state },
         }));
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>

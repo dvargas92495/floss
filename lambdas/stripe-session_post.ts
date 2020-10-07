@@ -1,14 +1,13 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
   dynamo,
-  getContractByLink,
   getEmailFromHeaders,
   getFlossUserByEmail,
   headers,
   stripe,
   toPriority,
+  validateGithubLink,
 } from "../utils/lambda";
-import axios from "axios";
 import { v4 } from "uuid";
 
 export const handler = async (event: APIGatewayEvent) => {
@@ -24,24 +23,9 @@ export const handler = async (event: APIGatewayEvent) => {
     paymentMethod: string;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
-  const contractByLink = await getContractByLink(link);
-  if (!!contractByLink?.Count && contractByLink.Count > 0) {
-    return {
-      statusCode: 400,
-      body: `Contract already exists with ${link}`,
-      headers,
-    };
-  }
-
-  const issue = await axios.get(
-    link.replace("github.com", "api.github.com/repos")
-  );
-  if (issue.data.state !== "open") {
-    return {
-      statusCode: 400,
-      body: `Issue ${link} is not open`,
-      headers,
-    };
+  const response = await validateGithubLink(link);
+  if (response.body) {
+    return response;
   }
 
   const createdBy = await getEmailFromHeaders(reqHeaders.Authorization);
