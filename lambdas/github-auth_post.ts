@@ -26,8 +26,15 @@ export const handler = async (event: APIGatewayEvent) => {
         }
       );
       const { email, name, avatar_url } = userResponse.data;
+      if (!email) {
+        return {
+          statusCode: 500,
+          body: "Could not find email for Github User",
+          headers,
+        };
+      }
       const dynamoResponse = await getFlossUserByEmail(email);
-        
+
       if (!dynamoResponse.Items || dynamoResponse.Count === 0) {
         const client = await stripe.customers.create({
           email,
