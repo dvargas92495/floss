@@ -136,26 +136,10 @@ export const activateContractByStripeId = (id: string) =>
             })
             .promise()
             .then((r) =>
-              ses
-                .sendEmail({
-                  Destination: {
-                    ToAddresses: ["dvargas92495@gmail.com"],
-                  },
-                  Message: {
-                    Body: {
-                      Text: {
-                        Charset: "UTF-8",
-                        Data: `Check out the contract at https://floss.davidvargas.me/contract?uuid=${r.Attributes?.uuid.S}`,
-                      },
-                    },
-                    Subject: {
-                      Charset: "UTF-8",
-                      Data: `New Floss Contract from ${r.Attributes?.createdBy.S} is Active`,
-                    },
-                  },
-                  Source: "no-reply@floss.davidvargas.me",
-                })
-                .promise()
+              sendMeEmail(
+                `New Floss Contract from ${r.Attributes?.createdBy.S} is Active`,
+                `Check out the contract at https://floss.davidvargas.me/contract?uuid=${r.Attributes?.uuid.S}`
+              )
             )
             .then(() => ({
               statusCode: 200,
@@ -233,3 +217,25 @@ export const validateGithubLink = async (link: string) => {
 
   return {};
 };
+
+export const sendMeEmail = (subject: string, body: string) =>
+  ses
+    .sendEmail({
+      Destination: {
+        ToAddresses: ["dvargas92495@gmail.com"],
+      },
+      Message: {
+        Body: {
+          Text: {
+            Charset: "UTF-8",
+            Data: body,
+          },
+        },
+        Subject: {
+          Charset: "UTF-8",
+          Data: subject,
+        },
+      },
+      Source: "no-reply@floss.davidvargas.me",
+    })
+    .promise();

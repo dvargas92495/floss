@@ -4,6 +4,7 @@ import {
   getActiveContracts,
   getAxiosByGithubLink,
   parsePriority,
+  sendMeEmail,
   stripe,
 } from "../utils/lambda";
 import isAfter from "date-fns/isAfter";
@@ -43,7 +44,7 @@ export const handler = () =>
             })
             .promise()
         );
-        await Promise.all(completionPromises)
+        const successfulCompletions = await Promise.all(completionPromises)
           .then((r) => {
             console.log(`Completed ${r.length} contracts!`);
             const contractsToCharge = r.filter((c) =>
@@ -68,8 +69,7 @@ export const handler = () =>
           })
           .then((r) =>
             Promise.all(r.map((pi) => stripe.paymentIntents.create(pi)))
-          )
-          .then(() => console.log("Successfully got paid!"));
+          );
 
         const today = new Date();
         const overdues = ghIssues.filter(
@@ -89,8 +89,8 @@ export const handler = () =>
             })
             .promise()
         );
-        await Promise.all(overduePromises)
-          .then((r) => {
+        const successfulRefunds = await Promise.all(overduePromises).then(
+          (r) => {
             console.log(`${r.length} contracts were overdue.`);
             const contractsToRefund = r.filter((c) =>
               c.Attributes?.stripe.S?.startsWith("pi_")
@@ -114,8 +114,25 @@ export const handler = () =>
                 })
             );
             return Promise.all(stripeRefunds);
-          })
-          .then(() => console.log("Successfully got refund!"));
+          }
+        );
+        await sendMeEmail(
+          `Floss Nightly Summary`,
+          `
+Successfully closed ${successfulCompletions.length} contracts.
+               
+Successfully refunded ${successfulRefunds.length} contracts.
+              `
+        );
       })
-      .catch((e) => console.error(e));
+      .catch((e) =>
+        sendMeEmail(
+          `Floss 500 Error: github-issue-query`,
+          `
+Response: ${JSON.stringify(e.response)}
+                 
+Message: ${e.message}
+                `
+        )
+      );
   });
