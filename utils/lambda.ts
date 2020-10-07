@@ -5,7 +5,7 @@ import axios, { AxiosResponse } from "axios";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
-const ses = new AWS.SES({ apiVersion: "2010-12-01" });
+export const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2020-08-27",

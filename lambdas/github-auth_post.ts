@@ -1,7 +1,13 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
 import { v4 } from "uuid";
-import { dynamo, getFlossUserByEmail, headers, stripe } from "../utils/lambda";
+import {
+  dynamo,
+  getFlossUserByEmail,
+  headers,
+  ses,
+  stripe,
+} from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const { code } = JSON.parse(event.body || "{}");
@@ -77,9 +83,41 @@ export const handler = async (event: APIGatewayEvent) => {
         headers,
       };
     })
-    .catch((e) => ({
-      statusCode: 500,
-      body: e.response?.data || e.message,
-      headers,
-    }));
+    .catch((e) =>
+      ses
+        .sendEmail({
+          Destination: {
+            ToAddresses: ["dvargas92495@gmail.com"],
+          },
+          Message: {
+            Body: {
+              Text: {
+                Charset: "UTF-8",
+                Data: `Response: ${JSON.stringify(e.response)}
+                   
+                   Message: ${e.message}
+                    
+                   Login Params: ${JSON.stringify({
+                     client_id: process.env.OAUTH_CLIENT_ID,
+                     client_secret: process.env.OAUTH_CLIENT_SECRET,
+                     code,
+                     accept: "json",
+                   })}
+                  `,
+              },
+            },
+            Subject: {
+              Charset: "UTF-8",
+              Data: `Floss 500 Error: github-auth/post`,
+            },
+          },
+          Source: "no-reply@floss.davidvargas.me",
+        })
+        .promise()
+        .then(() => ({
+          statusCode: 500,
+          body: e.response?.data || e.message,
+          headers,
+        }))
+    );
 };
