@@ -6,6 +6,8 @@
     "prebuild": "next build",
     "build": "next export",
     "build:lambda": "webpack --config webpack.lambda.config.js",
+    "precron": "npm run build:lambda",
+    "cron": "node -e \"require('./out/github-issue-query.js').handler()\"",
     "prelocal": "npm run build:lambda",
     "local": "serverless offline",
     "start": "next start",
