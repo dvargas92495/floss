@@ -3,20 +3,29 @@ import Layout from "../../components/Layout";
 import React, { useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import Button from "@material-ui/core/Button";
+import MuiLink from "@material-ui/core/Link";
+
+const GithubDisplay = ({ link }: { link: string }) => {
+  const [loading] = useState(false);
+  const [name] = useState(link);
+  return loading ? (
+    <Typography variant={"h5"}>Loading...</Typography>
+  ) : (
+    <Typography variant={"h5"}>
+      <MuiLink href={link}>{name}</MuiLink>
+    </Typography>
+  );
+};
 
 const StaticPropsDetail = () => {
-  const router = useRouter();
-
-  const { id } = router.query;
   const [contract, setContract] = useState<Contract>();
   useEffect(() => {
-    fetch(`${API_URL}/contract?uuid=${id}`)
+    const query = new URLSearchParams(window.location.search);
+    const uuid = query.get("id");
+    fetch(`${API_URL}/contract?uuid=${uuid}`)
       .then((res) => res.json())
       .then((res) => setContract(res));
-  }, [setContract, id]);
+  }, [setContract]);
   return (
     <Layout title={`Contract Detail | Floss`}>
       {contract ? (
@@ -24,11 +33,12 @@ const StaticPropsDetail = () => {
           <Typography variant={"h1"}>
             ${contract.reward} - {contract?.lifecycle?.toUpperCase()}
           </Typography>
-          <Typography variant={"h5"}>
-            {contract.link}
-          </Typography>
+          <GithubDisplay link={contract.link} />
           <Typography variant={"subtitle1"}>
             Due on: {contract.dueDate}
+          </Typography>
+          <Typography variant={"subtitle1"}>
+            Created by {contract.createdBy} on {contract.createdDate}
           </Typography>
         </>
       ) : (

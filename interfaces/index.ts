@@ -1,4 +1,4 @@
-export type Issue = {
+export type Contract = {
   dueDate: string;
   lifecycle: string;
   link: string;

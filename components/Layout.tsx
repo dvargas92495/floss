@@ -1,4 +1,4 @@
-import React, { ReactNode, useContext } from "react";
+import React, { FunctionComponent, useContext } from "react";
 import Head from "next/head";
 import { AppBar } from "@dvargas92495/ui";
 import MuiLink from "@material-ui/core/Link";
@@ -6,13 +6,13 @@ import Logo from "./Logo";
 import GitHub from "@material-ui/icons/GitHub";
 import Avatar from "@material-ui/core/Avatar";
 import UserContext from "./UserContext";
+import Container from "@material-ui/core/Container";
 
 type Props = {
-  children?: ReactNode;
   title?: string;
 };
 
-const Layout = ({ children, title = "Floss" }: Props) => {
+const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
   const { user } = useContext(UserContext);
   return (
     <div>
@@ -21,7 +21,7 @@ const Layout = ({ children, title = "Floss" }: Props) => {
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <AppBar homeIcon={<Logo size={2} />} pages={["about", "contracts"]}>
+      <AppBar homeIcon={<Logo size={2} />} pages={["about", "dashboard"]}>
         {user ? (
           <Avatar alt={user.name} src={user.avatar_url} />
         ) : (
@@ -35,7 +35,9 @@ const Layout = ({ children, title = "Floss" }: Props) => {
           </MuiLink>
         )}
       </AppBar>
-      {children}
+      <Container maxWidth={"lg"}>
+        <>{children}</>
+      </Container>
       <footer>
         <hr />
         <span>© {new Date().getFullYear()} Vargas Arts, LLC</span>

@@ -1,5 +1,4 @@
 import Layout from "../../components/Layout";
-import List from "../../components/ContractList";
 import Typography from "@material-ui/core/Typography";
 import axios, { AxiosResponse } from "axios";
 import Button from "@material-ui/core/Button";
@@ -19,7 +18,6 @@ import DialogActions from "@material-ui/core/DialogActions";
 import addMonths from "date-fns/addMonths";
 import format from "date-fns/format";
 import parse from "date-fns/parse";
-import Paper from "@material-ui/core/Paper";
 import { API_URL } from "../../utils/client";
 import { loadStripe } from "@stripe/stripe-js";
 import isBefore from "date-fns/isBefore";
@@ -39,6 +37,8 @@ import MenuItem from "@material-ui/core/MenuItem";
 import InputLabel from "@material-ui/core/InputLabel";
 import Grid from "@material-ui/core/Grid";
 import { Container } from "@material-ui/core";
+import IssueList from "../../components/IssueList";
+import ProjectList from "../../components/ProjectList";
 
 const stripe = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
 
@@ -457,20 +457,22 @@ const CreateGithubContractDialog = ({
   );
 };
 
-const WithStaticProps = () => {
+const Dashboard = () => {
   const [message, setMessage] = useState("");
-  const [items, setItems] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState("Loading...");
   const fetchContracts = useCallback(() => {
     setLoading("Loading...");
     axios
       .get(`${API_URL}/contracts`)
       .then((res) => {
-        setItems(res.data);
+        setProjects(res.data.projects);
+        setIssues(res.data.issues);
         setLoading("");
       })
       .catch((e) => setLoading(e.response?.data || e.message));
-  }, [setItems, setLoading]);
+  }, [setIssues, setProjects, setLoading]);
   useEffect(() => {
     fetchContracts();
   }, [fetchContracts]);
@@ -486,31 +488,30 @@ const WithStaticProps = () => {
     }
   }, [setMessage]);
   return (
-    <Layout title="Contract List | Floss">
-      <Container maxWidth={"lg"}>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <Typography variant="h1">Contract List</Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant="subtitle1">{message}</Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Paper variant={"outlined"}>
-              {loading ? (
-                <Typography variant={"body2"}>{loading}</Typography>
-              ) : (
-                <List items={items} />
-              )}
-            </Paper>
-          </Grid>
-          <Grid item xs={12}>
-            <CreateGithubContractDialog fetchContracts={fetchContracts} />
-          </Grid>
+    <Layout title="Dashboard | Floss">
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <Typography variant="h1">Dashboard</Typography>
         </Grid>
-      </Container>
+        <Grid item xs={12}>
+          <Typography variant="subtitle1">{message}</Typography>
+        </Grid>
+        {loading ? (
+          <Grid item xs={12}>
+            <Typography variant={"body2"}>{loading}</Typography>
+          </Grid>
+        ) : (
+          <>
+            <ProjectList items={projects} />
+            <IssueList items={issues} />
+          </>
+        )}
+        <Grid item xs={12}>
+          <CreateGithubContractDialog fetchContracts={fetchContracts} />
+        </Grid>
+      </Grid>
     </Layout>
   );
 };
 
-export default WithStaticProps;
+export default Dashboard;

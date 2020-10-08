@@ -2,9 +2,9 @@ import * as React from "react";
 import { Contract } from "../interfaces";
 import EntityList from "./EntityList";
 
-const ContractList = ({ items }: { items: Contract[] }) => (
+const IssueList = ({ items }: { items: Contract[] }) => (
   <EntityList
-    title={"Contracts"}
+    title={"Issues"}
     items={items.map((i) => ({
       id: i.uuid,
       icon: `$${i.reward}`,
@@ -15,4 +15,4 @@ const ContractList = ({ items }: { items: Contract[] }) => (
   />
 );
 
-export default ContractList;
+export default IssueList;
