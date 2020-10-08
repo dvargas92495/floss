@@ -1,55 +1,42 @@
-import { Contract } from "../../interfaces";
+import { Issue } from "../../interfaces";
 import Layout from "../../components/Layout";
 import React, { useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
 import MuiLink from "@material-ui/core/Link";
 import axios from "axios";
+import Grid from "@material-ui/core/Grid";
+import ContractList from "../../components/ContractList";
 
-const GithubDisplay = ({ link }: { link: string }) => {
-  const [loading, setLoading] = useState(true);
-  const [name, setName] = useState("");
-  useEffect(() => {
-    axios
-      .get(link.replace("https://github.com", "https://api.github.com/repos"))
-      .then((issue) => {
-        setName(issue.data.title);
-        setLoading(false);
-      });
-  }, [setName, setLoading]);
-  return loading ? (
-    <Typography variant={"h5"}>Loading...</Typography>
-  ) : (
-    <Typography variant={"h5"}>
-      <MuiLink href={link}>{name}</MuiLink>
-    </Typography>
-  );
-};
-
-const StaticPropsDetail = () => {
-  const [contract, setContract] = useState<Contract>();
+const IssuePage = () => {
+  const [issue, setIssue] = useState<Issue>();
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
-    const uuid = query.get("id");
-    fetch(`${API_URL}/contract?uuid=${uuid}`)
-      .then((res) => res.json())
-      .then((res) => setContract(res));
-  }, [setContract]);
+    const link = query.get("id");
+    axios
+      .get(`${API_URL}/issue?link=${link}`)
+      .then((issue) => setIssue(issue.data));
+  }, [setIssue]);
   return (
-    <Layout title={`Contract Detail | Floss`}>
-      {contract ? (
-        <>
-          <Typography variant={"h1"}>
-            ${contract.reward} - {contract?.lifecycle?.toUpperCase()}
-          </Typography>
-          <GithubDisplay link={contract.link} />
-          <Typography variant={"subtitle1"}>
-            Due on: {contract.dueDate}
-          </Typography>
-          <Typography variant={"subtitle1"}>
-            Created by {contract.createdBy} on {contract.createdDate}
-          </Typography>
-        </>
+    <Layout title={`Issue Detail | Floss`}>
+      {issue ? (
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <Typography variant={"h1"}>
+              ${issue.contracts.reduce((n, c) => c.reward + n, 0)} -{" "}
+              {issue.state.toUpperCase()}
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant={"h5"}>
+              <MuiLink href={issue.link}>{issue.title}</MuiLink>
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant={"body1"}>{issue.body}</Typography>
+          </Grid>
+          <ContractList items={issue.contracts} />
+        </Grid>
       ) : (
         <Typography variant={"body2"}>Loading...</Typography>
       )}
@@ -57,4 +44,4 @@ const StaticPropsDetail = () => {
   );
 };
 
-export default StaticPropsDetail;
+export default IssuePage;

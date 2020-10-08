@@ -4,8 +4,6 @@ import React, { useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
 import { useRouter } from "next/router";
-import Link from "next/link";
-import Button from "@material-ui/core/Button";
 
 const StaticPropsDetail = () => {
   const router = useRouter();

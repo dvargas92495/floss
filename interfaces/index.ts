@@ -8,6 +8,14 @@ export type Contract = {
   createdBy: string;
 };
 
+export type Issue = {
+  title: string;
+  body: string;
+  link: string;
+  state: "open" | "closed";
+  contracts: Contract[];
+};
+
 export type User = {
   name: string;
   email: string;

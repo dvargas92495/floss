@@ -36,7 +36,6 @@ import Select from "@material-ui/core/Select";
 import MenuItem from "@material-ui/core/MenuItem";
 import InputLabel from "@material-ui/core/InputLabel";
 import Grid from "@material-ui/core/Grid";
-import { Container } from "@material-ui/core";
 import IssueList from "../../components/IssueList";
 import ProjectList from "../../components/ProjectList";
 

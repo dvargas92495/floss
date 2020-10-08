@@ -80,7 +80,7 @@ export const getActiveContracts = () =>
     })
     .promise();
 
-export const getContractByLink = (link: string) =>
+export const getContractsByLink = (link: string) =>
   dynamo
     .query({
       TableName: "FlossContracts",
@@ -169,7 +169,13 @@ export const getEmailFromHeaders = async (Authorization: string) => {
   return user.data.email;
 };
 
-type GithubModel = { html_url: string; state: "open" | "closed" };
+type GithubModel = {
+  html_url: string;
+  state: "open" | "closed";
+  title: string;
+  repository_url: string;
+  body: string;
+};
 
 export const getAxiosByGithubLink = async (link?: string) => {
   if (!link) {
@@ -198,7 +204,7 @@ export const getAxiosByGithubLink = async (link?: string) => {
 };
 
 export const validateGithubLink = async (link: string) => {
-  const contractByLink = await getContractByLink(link);
+  const contractByLink = await getContractsByLink(link);
   if (!!contractByLink?.Count && contractByLink.Count > 0) {
     return {
       statusCode: 400,

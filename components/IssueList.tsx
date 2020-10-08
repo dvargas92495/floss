@@ -6,7 +6,7 @@ const IssueList = ({ items }: { items: Contract[] }) => (
   <EntityList
     title={"Issues"}
     items={items.map((i) => ({
-      id: i.uuid,
+      id: i.link.substring("https://github.com/".length),
       icon: `$${i.reward}`,
       primary: i.link,
       secondary: `Due on: ${i.dueDate}`,
