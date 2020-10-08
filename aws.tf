@@ -104,7 +104,7 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     hash_key           = "link"
     name               = "link-index"
     non_key_attributes = []
-    projection_type    = "KEYS_ONLY"
+    projection_type    = "ALL"
     read_capacity      = 0
     write_capacity     = 0
   }
