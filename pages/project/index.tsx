@@ -1,46 +1,61 @@
-import { Contract } from "../../interfaces";
+import { Project } from "../../interfaces";
 import Layout from "../../components/Layout";
 import React, { useEffect, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
 import MuiLink from "@material-ui/core/Link";
+import Grid from "@material-ui/core/Grid";
+import axios from "axios";
+import ContractList from "../../components/ContractList";
+import EntityList from "../../components/EntityList";
 
-const GithubDisplay = ({ link }: { link: string }) => {
-  const [loading] = useState(false);
-  const [name] = useState(link);
-  return loading ? (
-    <Typography variant={"h5"}>Loading...</Typography>
-  ) : (
-    <Typography variant={"h5"}>
-      <MuiLink href={link}>{name}</MuiLink>
-    </Typography>
-  );
-};
-
-const StaticPropsDetail = () => {
-  const [contract, setContract] = useState<Contract>();
+const ProjectPage = () => {
+  const [project, setProject] = useState<Project>();
   useEffect(() => {
     const query = new URLSearchParams(window.location.search);
-    const uuid = query.get("id");
-    fetch(`${API_URL}/contract?uuid=${uuid}`)
-      .then((res) => res.json())
-      .then((res) => setContract(res));
-  }, [setContract]);
+    const link = query.get("id");
+    axios
+      .get(`${API_URL}/project?link=${link}`)
+      .then((project) => setProject(project.data));
+  }, [setProject]);
   return (
-    <Layout title={`Contract Detail | Floss`}>
-      {contract ? (
-        <>
+    <Layout title={`Project Detail | Floss`}>
+      {project ? (
+        <Grid container spacing={2}>
           <Typography variant={"h1"}>
-            ${contract.reward} - {contract?.lifecycle?.toUpperCase()}
+            ${project.contracts.reduce((n, c) => c.reward + n, 0)} -{" "}
+            {project.state.toUpperCase()}
           </Typography>
-          <GithubDisplay link={contract.link} />
-          <Typography variant={"subtitle1"}>
-            Due on: {contract.dueDate}
-          </Typography>
-          <Typography variant={"subtitle1"}>
-            Created by {contract.createdBy} on {contract.createdDate}
-          </Typography>
-        </>
+          <Grid item xs={12}>
+            <Typography variant={"h5"}>
+              <MuiLink href={project.link}>{project.title}</MuiLink>
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant={"body1"}>{project.body}</Typography>
+          </Grid>
+          <ContractList items={project.contracts} />
+          <Grid item xs={12}>
+            <Typography variant={"h3"}>Cards</Typography>
+            {project.cards.map((column) => (
+              <EntityList
+                title={column.name}
+                items={column.cards.map((card) => ({
+                  link: card.link.replace(
+                    "https://api.github.com/repos/",
+                    "https://github.com/"
+                  ),
+                  icon: "",
+                  primary: card.note ? "No note" : card.note,
+                  secondary: card.link.substring(
+                    "https://api.github.com/repos/".length
+                  ),
+                  tertiary: "",
+                }))}
+              />
+            ))}
+          </Grid>
+        </Grid>
       ) : (
         <Typography variant={"body2"}>Loading...</Typography>
       )}
@@ -48,4 +63,4 @@ const StaticPropsDetail = () => {
   );
 };
 
-export default StaticPropsDetail;
+export default ProjectPage;

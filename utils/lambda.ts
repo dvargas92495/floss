@@ -173,8 +173,17 @@ type GithubModel = {
   html_url: string;
   state: "open" | "closed";
   title: string;
+  name: string;
   repository_url: string;
+  columns_url: string;
   body: string;
+};
+
+export const projectOpts = {
+  headers: {
+    Accept: 'application/vnd.github.inertia-preview+json"',
+    Authorization: `token ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`,
+  },
 };
 
 export const getAxiosByGithubLink = async (link?: string) => {
@@ -187,12 +196,7 @@ export const getAxiosByGithubLink = async (link?: string) => {
     ? apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length)
     : apiLink;
   if (isProject) {
-    const getProjects = axios.get(axiosUrl, {
-      headers: {
-        Accept: 'application/vnd.github.inertia-preview+json"',
-        Authorization: `token ${process.env.GITHUB_PERSONAL_ACCESS_TOKEN}`,
-      },
-    }) as Promise<AxiosResponse<GithubModel[]>>;
+    const getProjects = axios.get(axiosUrl, projectOpts) as Promise<AxiosResponse<GithubModel[]>>;
     return getProjects.then(
       (projects) =>
         projects.data.find((p) => p.html_url === link) || ({} as GithubModel)

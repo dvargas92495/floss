@@ -16,6 +16,15 @@ export type Issue = {
   contracts: Contract[];
 };
 
+export type Project = {
+  title: string;
+  body: string;
+  state: "open" | "closed";
+  link: string;
+  cards: { cards: { note: string; link: string;}[]; name: string }[];
+  contracts: Contract[];
+};
+
 export type User = {
   name: string;
   email: string;

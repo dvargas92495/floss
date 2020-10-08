@@ -13,7 +13,8 @@ const EntityList = ({
 }: {
   title: string;
   items: {
-    id: string;
+    id?: string;
+    link?: string;
     icon: string;
     primary: string;
     secondary: string;
@@ -32,9 +33,9 @@ const EntityList = ({
               key={item.id}
               button
               component="a"
-              href={`/${title
+              href={item.id ? `/${title
                 .toLowerCase()
-                .substring(0, title.length - 1)}?id=${item.id}`}
+                .substring(0, title.length - 1)}?id=${item.id}`: item.link}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText
