@@ -57,6 +57,8 @@ module "aws-serverless-backend" {
         "contract/post",
         "contract/put",
         "contracts/get",
+        "issue/get",
+        "project/get",
         "github-auth/post",
         "stripe-session/post",
         "stripe-setup-intent/post",
