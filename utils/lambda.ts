@@ -196,7 +196,9 @@ export const getAxiosByGithubLink = async (link?: string) => {
     ? apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length)
     : apiLink;
   if (isProject) {
-    const getProjects = axios.get(axiosUrl, projectOpts) as Promise<AxiosResponse<GithubModel[]>>;
+    const getProjects = axios.get(axiosUrl, projectOpts) as Promise<
+      AxiosResponse<GithubModel[]>
+    >;
     return getProjects.then(
       (projects) =>
         projects.data.find((p) => p.html_url === link) || ({} as GithubModel)
@@ -208,14 +210,6 @@ export const getAxiosByGithubLink = async (link?: string) => {
 };
 
 export const validateGithubLink = async (link: string) => {
-  const contractByLink = await getContractsByLink(link);
-  if (!!contractByLink?.Count && contractByLink.Count > 0) {
-    return {
-      statusCode: 400,
-      body: `Contract already exists with ${link}`,
-      headers,
-    };
-  }
   const response = await getAxiosByGithubLink(link);
   if (response?.state !== "open") {
     return {

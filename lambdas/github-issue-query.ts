@@ -23,23 +23,32 @@ export const handler = () =>
     if (!r.Items) {
       return;
     }
-    const contractsByLink = Object.fromEntries(
-      r.Items.map((i) => [i.link.S, i])
-    );
-    const reqs = r.Items.map((i) => getAxiosByGithubLink(i.link?.S));
+    const contractsByLink: { [key: string]: DynamoDB.AttributeMap[] } = {};
+    r.Items.forEach((i) => {
+      if (!i.link.S) {
+        return;
+      }
+      if (contractsByLink[i.link.S]) {
+        contractsByLink[i.link.S].push(i);
+      } else {
+        contractsByLink[i.link.S] = [i];
+      }
+    });
+
+    const reqs = Object.keys(contractsByLink).map((i) => getAxiosByGithubLink(i));
     return Promise.all(reqs)
       .then(async (issues) => {
-        const ghIssues = issues.map((i) => ({
-          ...contractsByLink[i.html_url],
+        const ghIssues = issues.flatMap((i) => contractsByLink[i.html_url].map(c => ({
+          ...c,
           link: { S: i.html_url },
           lifecycle: { S: i.state },
-        }));
+        })));
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>
           dynamo
             .putItem({
               Item,
-              TableName: "FlossContracts",
+              TableName: "FloassContracts",
               ReturnValues: "ALL_OLD",
             })
             .promise()
