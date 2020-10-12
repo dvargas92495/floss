@@ -32,6 +32,18 @@ variable "stripe_secret" {
     type = string
 }
 
+variable "twitter_bearer_token" {
+    type = string
+}
+
+variable "twitter_consumer_key" {
+    type = string
+}
+
+variable "twitter_consumer_secret" {
+    type = string
+}
+
 provider "aws" {
     region = "us-east-1"
 }
@@ -331,4 +343,22 @@ resource "github_actions_secret" "stripe_secret" {
   repository       = "floss"
   secret_name      = "STRIPE_SECRET_KEY"
   plaintext_value  = var.stripe_secret
+}
+
+resource "github_actions_secret" "twitter_bearer_token" {
+  repository       = "floss"
+  secret_name      = "TWITTER_BEARER_TOKEN"
+  plaintext_value  = var.twitter_bearer_token
+}
+
+resource "github_actions_secret" "twitter_consumer_key" {
+  repository       = "floss"
+  secret_name      = "TWITTER_CONSUMER_KEY"
+  plaintext_value  = var.twitter_consumer_key
+}
+
+resource "github_actions_secret" "twitter_consumer_secret" {
+  repository       = "floss"
+  secret_name      = "TWITTER_CONSUMER_SECRET"
+  plaintext_value  = var.twitter_consumer_secret
 }
