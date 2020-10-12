@@ -20,7 +20,6 @@ import Button from "@material-ui/core/Button";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
-import axios from 'axios';
 
 type Props = {
   title?: string;
