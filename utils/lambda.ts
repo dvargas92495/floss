@@ -192,10 +192,8 @@ export const getAxiosByGithubLink = async (link?: string) => {
   }
   const apiLink = link.replace("github.com", "api.github.com/repos");
   const isProject = apiLink.indexOf("/projects/") > -1;
-  const axiosUrl = isProject
-    ? apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length)
-    : apiLink;
   if (isProject) {
+    const axiosUrl = apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length);
     const getProjects = axios.get(axiosUrl, projectOpts) as Promise<
       AxiosResponse<GithubModel[]>
     >;
@@ -204,7 +202,7 @@ export const getAxiosByGithubLink = async (link?: string) => {
         projects.data.find((p) => p.html_url === link) || ({} as GithubModel)
     );
   } else {
-    const getIssue = axios.get(axiosUrl) as Promise<AxiosResponse<GithubModel>>;
+    const getIssue = axios.get(apiLink) as Promise<AxiosResponse<GithubModel>>;
     return getIssue.then((r) => r.data);
   }
 };

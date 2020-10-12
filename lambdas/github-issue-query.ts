@@ -34,21 +34,24 @@ export const handler = () =>
         contractsByLink[i.link.S] = [i];
       }
     });
-
-    const reqs = Object.keys(contractsByLink).map((i) => getAxiosByGithubLink(i));
+    const reqs = Object.keys(contractsByLink).map((i) =>
+      getAxiosByGithubLink(i)
+    );
     return Promise.all(reqs)
       .then(async (issues) => {
-        const ghIssues = issues.flatMap((i) => contractsByLink[i.html_url].map(c => ({
-          ...c,
-          link: { S: i.html_url },
-          lifecycle: { S: i.state },
-        })));
+        const ghIssues = issues.flatMap((i) =>
+          contractsByLink[i.html_url].map((c) => ({
+            ...c,
+            link: { S: i.html_url },
+            lifecycle: { S: i.state },
+          }))
+        );
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>
           dynamo
             .putItem({
               Item,
-              TableName: "FloassContracts",
+              TableName: "FlossContracts",
               ReturnValues: "ALL_OLD",
             })
             .promise()
@@ -57,7 +60,7 @@ export const handler = () =>
           .then((r) => {
             console.log(`Completed ${r.length} contracts!`);
             const contractsToCharge = r.filter((c) =>
-              c.Attributes?.stripe.S?.startsWith("seti_")
+              c.Attributes?.stripe?.S?.startsWith("seti_")
             );
             console.log(
               `Let's get paid for ${contractsToCharge.length} contracts!`
