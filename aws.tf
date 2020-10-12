@@ -196,7 +196,7 @@ resource "aws_lambda_function" "github_issue_query" {
 resource "aws_cloudwatch_event_rule" "trigger_query" {
   name        = "FlossGithubIssueQuery"
   description = "Triggers every day at midnight, querying issues from active contracts"
-  schedule_expression = "cron(0 0 * * ? *)"
+  schedule_expression = "cron(0 0 4 * ? *)"
 }
 
 resource "aws_lambda_permission" "allow_query" {
