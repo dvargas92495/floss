@@ -97,6 +97,10 @@ const CreateGithubContractForm = ({
   const saveIssue = useCallback(() => {
     setMessage("Loading...");
     if (reward > 0) {
+      if (!user) {
+        setMessage("Must be signed in to Fund Contract");
+        return;
+      }
       if (payNow) {
         axios
           .post(`${API_URL}/stripe-session`, body, axiosOpts)
