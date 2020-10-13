@@ -1,4 +1,5 @@
 import { APIGatewayEvent } from "aws-lambda";
+import Stripe from "stripe";
 import {
   getEmailFromHeaders,
   getFlossUserByEmail,
@@ -19,10 +20,14 @@ export const handler = async (event: APIGatewayEvent) => {
   }
 
   const customer = flossUser.Items[0].client.S || "";
-  const paymentMethods = await stripe.paymentMethods.list({
-    customer,
-    type: "card",
-  });
+  const paymentMethods = await stripe.paymentMethods
+    .list({
+      customer,
+      type: "card",
+    })
+    .catch(() => Promise.resolve({
+      data: [] as Stripe.PaymentMethod[],
+    }));
 
   return {
     statusCode: 200,

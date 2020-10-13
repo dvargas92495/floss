@@ -7,7 +7,6 @@ import {
   toPriority,
   validateGithubLink,
 } from "../utils/lambda";
-import axios from "axios";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
@@ -25,50 +24,41 @@ export const handler = async (event: APIGatewayEvent) => {
 
   const uuid = v4();
   const priority = toPriority(priorityProps);
-  return axios(link.replace("github.com", "api.github.com/repos")).then(
-    (issue) =>
-      issue.data.state === "open"
-        ? dynamo
-            .putItem({
-              Item: {
-                uuid: {
-                  S: uuid,
-                },
-                link: {
-                  S: link,
-                },
-                priority: {
-                  S: priority,
-                },
-                lifecycle: {
-                  S: "active",
-                },
-                createdBy: {
-                  S: "dvargas924595@gmail.com",
-                },
-              },
-              TableName: "FlossContracts",
-            })
-            .promise()
-            .then((r) => ({
-              statusCode: 200,
-              body: JSON.stringify({
-                link,
-                uuid,
-                lifecycle: "active",
-                ...parsePriority(r.Attributes),
-              }),
-              headers,
-            }))
-            .catch((e) => ({
-              statusCode: 500,
-              body: e.message,
-              headers,
-            }))
-        : {
-            statusCode: 400,
-            body: `Issue ${link} is not open`,
-            headers,
-          }
-  );
+  return dynamo
+    .putItem({
+      Item: {
+        uuid: {
+          S: uuid,
+        },
+        link: {
+          S: link,
+        },
+        priority: {
+          S: priority,
+        },
+        lifecycle: {
+          S: "active",
+        },
+        createdBy: {
+          S: "dvargas924595@gmail.com",
+        },
+      },
+      TableName: "FlossContracts",
+    })
+    .promise()
+    .then((r) => ({
+      statusCode: 200,
+      body: JSON.stringify({
+        link,
+        uuid,
+        lifecycle: "active",
+        ...parsePriority(r.Attributes),
+      }),
+      headers,
+    }))
+    .catch((e) => ({
+      statusCode: 500,
+      body: e.message,
+      headers,
+    }));
 };
