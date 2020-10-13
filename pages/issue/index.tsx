@@ -5,6 +5,7 @@ import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
 import MuiLink from "@material-ui/core/Link";
 import axios from "axios";
+import marked from "marked";
 import Grid from "@material-ui/core/Grid";
 import ContractList from "../../components/ContractList";
 import CreateGithubContractDialog from "../../components/CreateGithubContractDialog";
@@ -26,18 +27,22 @@ const IssuePage = () => {
       {issue ? (
         <Grid container spacing={2}>
           <Grid item xs={12}>
-            <Typography variant={"h1"}>
+            <Typography variant={"h2"}>
+              <MuiLink href={issue.link} target="_blank" rel="noopener">
+                {issue.title}
+              </MuiLink>
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant={"h5"}>
               ${issue.contracts.reduce((n, c) => c.reward + n, 0)} -{" "}
               {issue.state.toUpperCase()}
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <Typography variant={"h5"}>
-              <MuiLink href={issue.link}>{issue.title}</MuiLink>
+            <Typography variant={"body1"}>
+              <div dangerouslySetInnerHTML={{ __html: marked(issue.body) }} />
             </Typography>
-          </Grid>
-          <Grid item xs={12}>
-            <Typography variant={"body1"}>{issue.body}</Typography>
           </Grid>
           <ContractList items={issue.contracts} />
           <Grid item xs={12}>

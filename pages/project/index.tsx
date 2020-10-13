@@ -6,6 +6,7 @@ import { API_URL } from "../../utils/client";
 import MuiLink from "@material-ui/core/Link";
 import Grid from "@material-ui/core/Grid";
 import axios from "axios";
+import marked from "marked";
 import ContractList from "../../components/ContractList";
 import EntityList from "../../components/EntityList";
 import CreateGithubContractDialog from "../../components/CreateGithubContractDialog";
@@ -21,22 +22,28 @@ const ProjectPage = () => {
   }, [setProject]);
   useEffect(() => {
     fetchProject();
-  }, [fetchProject])
+  }, [fetchProject]);
   return (
     <Layout title={`Project Detail | Floss`}>
       {project ? (
         <Grid container spacing={2}>
-          <Typography variant={"h1"}>
-            ${project.contracts.reduce((n, c) => c.reward + n, 0)} -{" "}
-            {project.state.toUpperCase()}
-          </Typography>
           <Grid item xs={12}>
-            <Typography variant={"h5"}>
-              <MuiLink href={project.link}>{project.title}</MuiLink>
+            <Typography variant={"h2"}>
+              <MuiLink href={project.link} target="_blank" rel="noopener">
+                {project.title}
+              </MuiLink>
             </Typography>
           </Grid>
           <Grid item xs={12}>
-            <Typography variant={"body1"}>{project.body}</Typography>
+            <Typography variant={"h5"}>
+              ${project.contracts.reduce((n, c) => c.reward + n, 0)} -{" "}
+              {project.state.toUpperCase()}
+            </Typography>
+          </Grid>
+          <Grid item xs={12}>
+            <Typography variant={"body1"}>
+              <div dangerouslySetInnerHTML={{ __html: marked(project.body) }} />
+            </Typography>
           </Grid>
           <ContractList items={project.contracts} />
           <Grid item xs={12}>
