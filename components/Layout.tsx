@@ -7,7 +7,7 @@ import React, {
 import Head from "next/head";
 import { AppBar } from "@dvargas92495/ui";
 import MuiLink from "@material-ui/core/Link";
-import Logo from "./Logo";
+import FlossLogo from "./FlossLogo";
 import GitHub from "@material-ui/icons/GitHub";
 import Twitter from "@material-ui/icons/Twitter";
 import Avatar from "@material-ui/core/Avatar";
@@ -20,24 +20,43 @@ import Button from "@material-ui/core/Button";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemAvatar from "@material-ui/core/ListItemAvatar";
 import ListItemText from "@material-ui/core/ListItemText";
+import makeStyles from "@material-ui/core/styles/makeStyles";
+import Typography from "@material-ui/core/Typography";
 
 type Props = {
   title?: string;
 };
+
+const useStyles = makeStyles((theme) => ({
+  root: {
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '100vh',
+  },
+  main: {
+    marginTop: theme.spacing(8),
+    marginBottom: theme.spacing(2),
+  },
+  footer: {
+    padding: theme.spacing(3, 2),
+    marginTop: 'auto',
+  },
+}));
 
 const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
   const { user } = useContext(UserContext);
   const [isOpen, setIsOpen] = useState(false);
   const open = useCallback(() => setIsOpen(true), [setIsOpen]);
   const close = useCallback(() => setIsOpen(false), [setIsOpen]);
+  const classes = useStyles();
   return (
-    <div>
+    <div className={classes.root}>
       <Head>
         <title>{title}</title>
         <meta charSet="utf-8" />
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       </Head>
-      <AppBar homeIcon={<Logo size={2} />} pages={["about", "dashboard"]}>
+      <AppBar homeIcon={<FlossLogo size={2} />} pages={["about", "dashboard"]}>
         {user ? (
           <Avatar alt={user.name} src={user.avatar_url} />
         ) : (
@@ -82,12 +101,12 @@ const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
           </MuiLink>
         </List>
       </Dialog>
-      <Container maxWidth={"lg"}>
+      <Container maxWidth={"lg"} component={"main"} className={classes.main}>
         <>{children}</>
       </Container>
-      <footer>
+      <footer className={classes.footer}>
         <hr />
-        <span>© {new Date().getFullYear()} Vargas Arts, LLC</span>
+        <Typography variant="body2" color="textSecondary">© {new Date().getFullYear()} Vargas Arts, LLC</Typography>
       </footer>
     </div>
   );
