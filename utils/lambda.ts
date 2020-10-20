@@ -193,7 +193,7 @@ export const getAxiosByGithubLink = async (link?: string) => {
   const apiLink = link.replace("github.com", "api.github.com/repos");
   const isProject = apiLink.indexOf("/projects/") > -1;
   if (isProject) {
-    const axiosUrl = apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length);
+    const axiosUrl = `${apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length)}?state=all`;
     const getProjects = axios.get(axiosUrl, projectOpts) as Promise<
       AxiosResponse<GithubModel[]>
     >;
