@@ -12,17 +12,21 @@ import {
 export const handler = async (event: APIGatewayEvent) => {
   const { code } = JSON.parse(event.body || "{}");
   return axios
-    .post("https://github.com/login/oauth/access_token", {
-      client_id: process.env.OAUTH_CLIENT_ID,
-      client_secret: process.env.OAUTH_CLIENT_SECRET,
-      code,
-      accept: "json",
-    })
+    .post(
+      "https://github.com/login/oauth/access_token",
+      {
+        client_id: process.env.OAUTH_CLIENT_ID,
+        client_secret: process.env.OAUTH_CLIENT_SECRET,
+        code,
+      },
+      {
+        headers: {
+          Accept: "application/json",
+        },
+      }
+    )
     .then(async (r) => {
-      const params = r.data.split("&") as string[];
-      const accessToken = params
-        .find((s) => s.split("=")[0] === "access_token")
-        ?.substring("access_token=".length);
+      const accessToken = r.data.access_token as string;
       const userResponse = await axios.get(
         `https://api.github.com/user?access_token=${accessToken}`,
         {
@@ -33,11 +37,18 @@ export const handler = async (event: APIGatewayEvent) => {
       );
       const { email, name, avatar_url } = userResponse.data;
       if (!email) {
-        return {
+        return sendMeEmail(
+          `Floss 500 Error: github-auth/post`,
+          `
+  Message: Could not find email for Github User
+                     
+  Response: ${JSON.stringify(userResponse.data)}
+          `
+        ).then(() => ({
           statusCode: 500,
           body: "Could not find email for Github User",
           headers,
-        };
+        }));
       }
       const dynamoResponse = await getFlossUserByEmail(email);
 
@@ -90,13 +101,6 @@ export const handler = async (event: APIGatewayEvent) => {
 Response: ${JSON.stringify(e.response)}
                    
 Message: ${e.message}
-                    
-Login Params: ${JSON.stringify({
-          client_id: process.env.OAUTH_CLIENT_ID,
-          client_secret: process.env.OAUTH_CLIENT_SECRET,
-          code,
-          accept: "json",
-        })}
         `
       ).then(() => ({
         statusCode: 500,
