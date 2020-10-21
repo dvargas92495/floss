@@ -1,10 +1,5 @@
 import * as React from "react";
-import List from "@material-ui/core/List";
-import ListItem from "@material-ui/core/ListItem";
-import ListItemIcon from "@material-ui/core/ListItemIcon";
-import ListItemText from "@material-ui/core/ListItemText";
-import Paper from "@material-ui/core/Paper";
-import { H3, H4 } from "@dvargas92495/ui";
+import { H3, H4, NavList, Outlined } from "@dvargas92495/ui";
 
 const EntityList = ({
   items,
@@ -22,40 +17,31 @@ const EntityList = ({
 }) => (
   <>
     <H3>{title}</H3>
-    <Paper variant={"outlined"}>
+    <Outlined>
       {items.length === 0 ? (
         <H4>No Active {title}</H4>
       ) : (
-        <List component="nav" aria-label={title.toLowerCase()}>
-          {items.map((item) => (
-            <ListItem
-              key={item.id}
-              button
-              component="a"
-              href={
-                item.id
-                  ? `/${title
-                      .toLowerCase()
-                      .substring(0, title.length - 1)}?id=${item.id}`
-                  : item.link
-              }
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText
-                primary={item.primary}
-                secondary={
-                  <>
-                    {item.secondary}
-                    <br />
-                    {item.tertiary}
-                  </>
-                }
-              />
-            </ListItem>
-          ))}
-        </List>
+        <NavList
+          label={title}
+          items={items.map((item) => ({
+            href: item.id
+              ? `/${title.toLowerCase().substring(0, title.length - 1)}?id=${
+                  item.id
+                }`
+              : item.link || "",
+            icon: item.icon,
+            primary: item.primary,
+            secondary: (
+              <>
+                {item.secondary}
+                <br />
+                {item.tertiary}
+              </>
+            ),
+          }))}
+        />
       )}
-    </Paper>
+    </Outlined>
   </>
 );
 
