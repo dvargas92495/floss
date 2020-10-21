@@ -1,20 +1,18 @@
-import Typography from "@material-ui/core/Typography";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext } from "react";
 import Layout from "../../components/Layout";
 import { API_URL } from "../../utils/client";
 import axios from "axios";
 import { useRouter } from "next/router";
 import UserContext from "../../components/UserContext";
+import { DataLoader } from "@dvargas92495/ui";
 
 const AuthPage = () => {
-  const [message, setMessage] = useState("");
   const router = useRouter();
   const { setUser } = useContext(UserContext);
-
-  useEffect(() => {
+  const auth = useCallback(() => {
     const query = new URLSearchParams(window.location.search);
     const code = query.get("code");
-    axios
+    return axios
       .post(`${API_URL}/github-auth`, {
         code,
       })
@@ -23,15 +21,10 @@ const AuthPage = () => {
         localStorage.setItem("githubToken", r.data.accessToken);
         router.push("/");
       })
-      .catch((e) => setMessage(e.response?.data || e.message));
-  }, [setMessage, setUser]);
+  }, [setUser]);
   return (
     <Layout title="Authentication | Floss">
-      {message ? (
-        <Typography variant="subtitle1">{message}</Typography>
-      ) : (
-        <Typography variant="h1">Logging In...</Typography>
-      )}
+      <DataLoader loadAsync={auth}/>
     </Layout>
   );
 };

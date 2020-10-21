@@ -1,58 +1,53 @@
 import { Contract } from "../../interfaces";
 import Layout from "../../components/Layout";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
 import MuiLink from "@material-ui/core/Link";
 import axios from "axios";
+import { DataLoader } from "@dvargas92495/ui";
 
 const GithubDisplay = ({ link }: { link: string }) => {
-  const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
-  useEffect(() => {
-    axios
-      .get(link.replace("https://github.com", "https://api.github.com/repos"))
-      .then((issue) => {
-        setName(issue.data.title);
-        setLoading(false);
-      });
-  }, [setName, setLoading]);
-  return loading ? (
-    <Typography variant={"h5"}>Loading...</Typography>
-  ) : (
-    <Typography variant={"h5"}>
-      <MuiLink href={link}>{name}</MuiLink>
-    </Typography>
+  const getIssue = useCallback(
+    () =>
+      axios
+        .get(link.replace("https://github.com", "https://api.github.com/repos"))
+        .then((issue) => setName(issue.data.title)),
+    [setName]
+  );
+  return (
+    <DataLoader loadAsync={getIssue}>
+      <Typography variant={"h5"}>
+        <MuiLink href={link}>{name}</MuiLink>
+      </Typography>
+    </DataLoader>
   );
 };
 
 const StaticPropsDetail = () => {
   const [contract, setContract] = useState<Contract>();
-  useEffect(() => {
+  const getContract = useCallback(() => {
     const query = new URLSearchParams(window.location.search);
     const uuid = query.get("id");
-    fetch(`${API_URL}/contract?uuid=${uuid}`)
-      .then((res) => res.json())
-      .then((res) => setContract(res));
+    return axios
+      .get(`${API_URL}/contract?uuid=${uuid}`)
+      .then((res) => setContract(res.data));
   }, [setContract]);
   return (
     <Layout title={`Contract Detail | Floss`}>
-      {contract ? (
-        <>
-          <Typography variant={"h1"}>
-            ${contract.reward} - {contract?.lifecycle?.toUpperCase()}
-          </Typography>
-          <GithubDisplay link={contract.link} />
-          <Typography variant={"subtitle1"}>
-            Due on: {contract.dueDate}
-          </Typography>
-          <Typography variant={"subtitle1"}>
-            Created by {contract.createdBy} on {contract.createdDate}
-          </Typography>
-        </>
-      ) : (
-        <Typography variant={"body2"}>Loading...</Typography>
-      )}
+      <DataLoader loadAsync={getContract}>
+        <Typography variant={"h1"}>
+          ${contract?.reward} - {contract?.lifecycle?.toUpperCase()}
+        </Typography>
+        <GithubDisplay link={contract?.link || ""} />
+        <Typography variant={"subtitle1"}>
+          Due on: {contract?.dueDate}
+        </Typography>
+        <Typography variant={"subtitle1"}>
+          Created by {contract?.createdBy} on {contract?.createdDate}
+        </Typography>
+      </DataLoader>
     </Layout>
   );
 };
