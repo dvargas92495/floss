@@ -33,7 +33,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <UserContext.Provider value={{ user, setUser }}>
       <ThemeProvider>
-        <MDXProvider>
+        <MDXProvider components={{}}>
           <Component {...pageProps} />
         </MDXProvider>
       </ThemeProvider>

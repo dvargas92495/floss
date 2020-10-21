@@ -1,5 +1,10 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { dynamo, headers, parsePriority } from "../utils/lambda";
+import {
+  dynamo,
+  getAxiosByGithubLink,
+  headers,
+  parsePriority,
+} from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) =>
   dynamo
@@ -12,16 +17,21 @@ export const handler = async (event: APIGatewayEvent) =>
       },
     })
     .promise()
-    .then((r) => ({
-      statusCode: 200,
-      body: JSON.stringify({
-        link: r.Item?.link.S,
-        lifecycle: r.Item?.lifecycle.S,
-        createdBy: r.Item?.createdBy.S,
-        ...parsePriority(r.Item),
-      }),
-      headers,
-    }))
+    .then((r) =>
+      getAxiosByGithubLink(r.Item?.link.S).then((g) => ({
+        statusCode: 200,
+        body: JSON.stringify({
+          contract: {
+            link: r.Item?.link.S,
+            lifecycle: r.Item?.lifecycle.S,
+            createdBy: r.Item?.createdBy.S,
+            ...parsePriority(r.Item),
+          },
+          title: g.title || g.name,
+        }),
+        headers,
+      }))
+    )
     .catch((e) => ({
       statusCode: 200,
       body: e.message,
