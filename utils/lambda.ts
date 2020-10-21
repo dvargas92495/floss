@@ -160,14 +160,23 @@ export const activateContractByStripeId = (id: string) =>
       headers,
     }));
 
-export const getEmailFromHeaders = async (Authorization: string) => {
-  const user = await axios.get("https://api.github.com/user", {
-    headers: {
-      Authorization,
-    },
-  });
-  return user.data.email;
-};
+export const getUser = async (Authorization: string) =>
+  (
+    await axios.get("https://api.github.com/user", {
+      headers: {
+        Authorization,
+      },
+    })
+  ).data;
+
+export const getEmailFromHeaders = async (Authorization: string) =>
+  (
+    await axios.get(`https://api.github.com/user/emails`, {
+      headers: {
+        Authorization,
+      },
+    })
+  ).data.find((e: { primary: boolean }) => e.primary)?.email;
 
 type GithubModel = {
   html_url: string;
@@ -193,7 +202,10 @@ export const getAxiosByGithubLink = async (link?: string) => {
   const apiLink = link.replace("github.com", "api.github.com/repos");
   const isProject = apiLink.indexOf("/projects/") > -1;
   if (isProject) {
-    const axiosUrl = `${apiLink.substring(0, apiLink.indexOf("/projects/") + "/projects".length)}?state=all`;
+    const axiosUrl = `${apiLink.substring(
+      0,
+      apiLink.indexOf("/projects/") + "/projects".length
+    )}?state=all`;
     const getProjects = axios.get(axiosUrl, projectOpts) as Promise<
       AxiosResponse<GithubModel[]>
     >;

@@ -3,7 +3,9 @@ import axios from "axios";
 import { v4 } from "uuid";
 import {
   dynamo,
+  getEmailFromHeaders,
   getFlossUserByEmail,
+  getUser,
   headers,
   sendMeEmail,
   stripe,
@@ -18,6 +20,7 @@ export const handler = async (event: APIGatewayEvent) => {
         client_id: process.env.OAUTH_CLIENT_ID,
         client_secret: process.env.OAUTH_CLIENT_SECRET,
         code,
+        scope: "read:user user:email",
       },
       {
         headers: {
@@ -27,22 +30,15 @@ export const handler = async (event: APIGatewayEvent) => {
     )
     .then(async (r) => {
       const accessToken = r.data.access_token as string;
-      const userResponse = await axios.get(
-        `https://api.github.com/user?access_token=${accessToken}`,
-        {
-          headers: {
-            Authorization: `token ${accessToken}`,
-          },
-        }
-      );
-      const { email, name, avatar_url } = userResponse.data;
+      const Authorization = `token ${accessToken}`;
+      const { name, avatar_url } = await getUser(Authorization);
+      const email = await getEmailFromHeaders(Authorization);
+
       if (!email) {
         return sendMeEmail(
           `Floss 500 Error: github-auth/post`,
           `
-  Message: Could not find email for Github User
-                     
-  Response: ${JSON.stringify(userResponse.data)}
+  Message: Could not find email for Github User ${name}
           `
         ).then(() => ({
           statusCode: 500,
