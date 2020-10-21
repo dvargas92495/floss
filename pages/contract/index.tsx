@@ -1,11 +1,9 @@
 import { Contract } from "../../interfaces";
 import Layout from "../../components/Layout";
 import React, { useCallback, useState } from "react";
-import Typography from "@material-ui/core/Typography";
 import { API_URL } from "../../utils/client";
-import MuiLink from "@material-ui/core/Link";
 import axios from "axios";
-import { DataLoader } from "@dvargas92495/ui";
+import { DataLoader, H1, H5, ExternalLink, Subtitle } from "@dvargas92495/ui";
 
 const GithubDisplay = ({ link }: { link: string }) => {
   const [name, setName] = useState("");
@@ -18,14 +16,14 @@ const GithubDisplay = ({ link }: { link: string }) => {
   );
   return (
     <DataLoader loadAsync={getIssue}>
-      <Typography variant={"h5"}>
-        <MuiLink href={link}>{name}</MuiLink>
-      </Typography>
+      <H5>
+        <ExternalLink href={link}>{name}</ExternalLink>
+      </H5>
     </DataLoader>
   );
 };
 
-const StaticPropsDetail = () => {
+const ContractPage = () => {
   const [contract, setContract] = useState<Contract>();
   const getContract = useCallback(() => {
     const query = new URLSearchParams(window.location.search);
@@ -37,19 +35,17 @@ const StaticPropsDetail = () => {
   return (
     <Layout title={`Contract Detail | Floss`}>
       <DataLoader loadAsync={getContract}>
-        <Typography variant={"h1"}>
+        <H1>
           ${contract?.reward} - {contract?.lifecycle?.toUpperCase()}
-        </Typography>
+        </H1>
         <GithubDisplay link={contract?.link || ""} />
-        <Typography variant={"subtitle1"}>
-          Due on: {contract?.dueDate}
-        </Typography>
-        <Typography variant={"subtitle1"}>
+        <Subtitle>Due on: {contract?.dueDate}</Subtitle>
+        <Subtitle>
           Created by {contract?.createdBy} on {contract?.createdDate}
-        </Typography>
+        </Subtitle>
       </DataLoader>
     </Layout>
   );
 };
 
-export default StaticPropsDetail;
+export default ContractPage;

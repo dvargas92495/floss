@@ -3,9 +3,8 @@ import List from "@material-ui/core/List";
 import ListItem from "@material-ui/core/ListItem";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
-import Typography from "@material-ui/core/Typography";
 import Paper from "@material-ui/core/Paper";
-import Grid from "@material-ui/core/Grid";
+import { H3, H4 } from "@dvargas92495/ui";
 
 const EntityList = ({
   items,
@@ -21,11 +20,11 @@ const EntityList = ({
     tertiary: string;
   }[];
 }) => (
-  <Grid item xs={12}>
-    <Typography variant="h3">{title}</Typography>
+  <>
+    <H3>{title}</H3>
     <Paper variant={"outlined"}>
       {items.length === 0 ? (
-        <Typography variant="h4">No Active {title}</Typography>
+        <H4>No Active {title}</H4>
       ) : (
         <List component="nav" aria-label={title.toLowerCase()}>
           {items.map((item) => (
@@ -33,9 +32,13 @@ const EntityList = ({
               key={item.id}
               button
               component="a"
-              href={item.id ? `/${title
-                .toLowerCase()
-                .substring(0, title.length - 1)}?id=${item.id}`: item.link}
+              href={
+                item.id
+                  ? `/${title
+                      .toLowerCase()
+                      .substring(0, title.length - 1)}?id=${item.id}`
+                  : item.link
+              }
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText
@@ -53,7 +56,7 @@ const EntityList = ({
         </List>
       )}
     </Paper>
-  </Grid>
+  </>
 );
 
 export default EntityList;
