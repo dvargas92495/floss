@@ -199,6 +199,7 @@ resource "aws_lambda_function" "github_issue_query" {
   runtime          = "nodejs12.x"
   filename         = "dummy.zip"
   publish          = false
+  timeout          = 30
 
   tags = {
     Application = "Floss"
