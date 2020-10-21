@@ -1,14 +1,17 @@
 import { AppProps } from "next/app";
 import React, { useEffect, useState } from "react";
-import { ThemeProvider } from '@dvargas92495/ui';
+import { ThemeProvider } from "@dvargas92495/ui";
 import UserContext from "../components/UserContext";
 import { User } from "../interfaces";
 import axios from "axios";
+import { MDXProvider } from "@mdx-js/react";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const [user, setUser] = useState<User>();
   useEffect(() => {
-    const accessToken = localStorage.getItem("githubToken") || process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+    const accessToken =
+      localStorage.getItem("githubToken") ||
+      process.env.NEXT_PUBLIC_GITHUB_TOKEN;
     if (accessToken && !user) {
       axios
         .get(`https://api.github.com/user?access_token=${accessToken}`, {
@@ -30,7 +33,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   return (
     <UserContext.Provider value={{ user, setUser }}>
       <ThemeProvider>
-        <Component {...pageProps} />
+        <MDXProvider>
+          <Component {...pageProps} />
+        </MDXProvider>
       </ThemeProvider>
     </UserContext.Provider>
   );
