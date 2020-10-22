@@ -23,9 +23,12 @@ export const handler = async (event: APIGatewayEvent) => {
   const cardsByColumn = await Promise.all(
     columns.data.map((c: { name: string; cards_url: string }) =>
       axios.get(c.cards_url, projectOpts).then((cards) => ({
-        cards: cards.data.map((cd: { note: string; content_url: string }) => ({
+        cards: cards.data.map((cd: { note: string; content_url: string; id: number }) => ({
           note: cd.note,
-          link: cd.content_url,
+          link: cd.content_url ? cd.content_url.replace(
+            "https://api.github.com/repos/",
+            "https://github.com/"
+          ) : `${link}#card-${cd.id}`,
         })),
         name: c.name,
       }))

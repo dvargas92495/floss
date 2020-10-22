@@ -57,14 +57,11 @@ const ProjectPage = () => {
             <EntityList
               title={column.name}
               items={column.cards.map((card) => ({
-                link: card.link.replace(
-                  "https://api.github.com/repos/",
-                  "https://github.com/"
-                ),
+                link: card.link,
                 icon: "",
-                primary: card.note ? "No note" : card.note,
+                primary: card.note ? card.note : "No Note",
                 secondary: card.link.substring(
-                  "https://api.github.com/repos/".length
+                  "https://github.com/".length
                 ),
                 tertiary: "",
               }))}
