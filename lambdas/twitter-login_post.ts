@@ -1,5 +1,6 @@
 import OAuth from "oauth-1.0a";
 import crypto from "crypto";
+import axios from "axios";
 import { headers } from "../utils/lambda";
 
 export const handler = async () => {
@@ -22,13 +23,36 @@ export const handler = async () => {
         oauth_callback: "https://floss.davidvargas.me/auth?twitter=true",
       },
       url: "https://api.twitter.com/oauth/request_token",
-      method: 'POST',
+      method: "POST",
     })
   );
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify(oauthHeaders),
-    headers,
-  };
+  return axios
+    .post(
+      "https://api.twitter.com/oauth/request_token",
+      {
+        oauth_callback: `https://floss.davidvargas.me/auth?twitter=true`,
+      },
+      { headers: oauthHeaders }
+    )
+    .then((r) => {
+      const parsedData = Object.fromEntries(
+        r.data.split("&").map((s: string) => s.split("="))
+      );
+      if (parsedData.oauth_callback_confirmed) {
+        return {
+          statusCode: 302,
+          headers: {
+            ...headers,
+            Location: `https://api.twitter.com/oauth/authenticate?oauth_token=${parsedData.oauth_token}`,
+          },
+        };
+      } else {
+        return {
+          statusCode: 500,
+          body: "Oauth Callback was not Confirmed",
+          headers,
+        };
+      }
+    });
 };
