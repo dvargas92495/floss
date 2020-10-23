@@ -77,3 +77,10 @@ functions:
           path: stripe-setup-intent
           method: post
           cors: true
+  twitter-login-post:
+    handler: out/twitter-login_post.handler
+    events:
+      - http:
+          path: twitter-login
+          method: post
+          cors: true
