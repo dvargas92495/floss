@@ -14,7 +14,10 @@ export const handler = async (event: APIGatewayEvent) => {
 
   return axios
     .post("https://api.twitter.com/oauth/access_token", data, {
-      headers: oauthHeaders,
+      headers: {
+        ...oauthHeaders,
+        Accept: "application/json",
+      },
     })
     .then((r) => ({
       statusCode: 200,
