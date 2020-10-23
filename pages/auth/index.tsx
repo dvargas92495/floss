@@ -11,6 +11,11 @@ const AuthPage = () => {
   const { setUser } = useContext(UserContext);
   const auth = useCallback(() => {
     const query = new URLSearchParams(window.location.search);
+    const isTwitter = query.get("twitter");
+    if (isTwitter) {
+      // hit twitter-auth
+    }
+    
     const code = query.get("code");
     return axios
       .post(`${API_URL}/github-auth`, {

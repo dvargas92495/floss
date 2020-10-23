@@ -73,10 +73,9 @@ const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
               button
               onClick={() =>
                 axios
-                  .post('https://api.twitter.com/oauth/request_token', {
-                    oauth_callback: `${API_URL}/twitter-login`
-                  })
-                  .catch(e => console.error(e))
+                  .post(`${API_URL}/twitter-login`)
+                  .then((r) => console.log(r.data))
+                  .catch((e) => console.error(e))
               }
             >
               <ListItemAvatar>
