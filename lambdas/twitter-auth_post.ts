@@ -28,8 +28,10 @@ export const handler = async (event: APIGatewayEvent) => {
           method: "GET",
         })
       );
+      console.log(parsedData);
+      console.log(credentialHeaders)
       return axios
-        .get("https://api.twitter.com/1.1/account/verify_credentials", {
+        .get(`https://api.twitter.com/1.1/account/verify_credentials?oauth_token=${oauth_token}`, {
           headers: credentialHeaders,
         })
         .then((c) => ({
