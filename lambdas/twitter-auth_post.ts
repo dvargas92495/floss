@@ -14,14 +14,28 @@ export const handler = async (event: APIGatewayEvent) => {
 
   return axios
     .post("https://api.twitter.com/oauth/access_token", data, {
-      headers: {
-        ...oauthHeaders,
-        Accept: "application/json",
-      },
+      headers: oauthHeaders,
     })
-    .then((r) => ({
-      statusCode: 200,
-      body: JSON.stringify(r.data),
-      headers,
-    }));
+    .then((r) => {
+      const parsedData = Object.fromEntries(
+        r.data.split("&").map((s: string) => s.split("="))
+      );
+      const { oauth_token } = parsedData;
+      const credentialHeaders = twitterOAuth.toHeader(
+        twitterOAuth.authorize({
+          data: { oauth_token },
+          url: "https://api.twitter.com/1.1/account/verify_credentials",
+          method: "GET",
+        })
+      );
+      return axios
+        .get("https://api.twitter.com/1.1/account/verify_credentials", {
+          headers: credentialHeaders,
+        })
+        .then((c) => ({
+          statusCode: 200,
+          body: JSON.stringify(c.data),
+          headers,
+        }));
+    });
 };
