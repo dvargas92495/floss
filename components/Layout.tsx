@@ -72,8 +72,9 @@ const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
             <ListItem
               button
               onClick={() =>
-                axios
-                  .post(`${API_URL}/twitter-login`)
+                axios.post(`${API_URL}/twitter-login`).then((r) => {
+                  window.location.href = `https://api.twitter.com/oauth/authenticate?oauth_token=${r.data.token}`;
+                })
               }
             >
               <ListItemAvatar>

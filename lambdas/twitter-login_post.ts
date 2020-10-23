@@ -1,24 +1,9 @@
-import OAuth from "oauth-1.0a";
-import crypto from "crypto";
 import axios from "axios";
-import { headers } from "../utils/lambda";
+import { headers, twitterOAuth } from "../utils/lambda";
 
 export const handler = async () => {
-  const oauth = new OAuth({
-    consumer: {
-      key: process.env.TWITTER_CONSUMER_KEY || "",
-      secret: process.env.TWITTER_CONSUMER_SECRET || "",
-    },
-    signature_method: "HMAC-SHA1",
-    hash_function(base_string, key) {
-      return crypto
-        .createHmac("sha1", key)
-        .update(base_string)
-        .digest("base64");
-    },
-  });
-  const oauthHeaders = oauth.toHeader(
-    oauth.authorize({
+  const oauthHeaders = twitterOAuth.toHeader(
+    twitterOAuth.authorize({
       data: {
         oauth_callback: "https://floss.davidvargas.me/auth?twitter=true",
       },
@@ -41,10 +26,9 @@ export const handler = async () => {
       );
       if (parsedData.oauth_callback_confirmed) {
         return {
-          statusCode: 302,
-          headers: {
-            Location: `https://api.twitter.com/oauth/authenticate?oauth_token=${parsedData.oauth_token}`,
-          },
+          statusCode: 200,
+          body: JSON.stringify({ token: parsedData.oauth_token }),
+          headers,
         };
       } else {
         return {

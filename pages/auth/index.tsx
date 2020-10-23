@@ -13,9 +13,20 @@ const AuthPage = () => {
     const query = new URLSearchParams(window.location.search);
     const isTwitter = query.get("twitter");
     if (isTwitter) {
-      // hit twitter-auth
+      const oauth_token = query.get("oauth_token");
+      const oauth_verifier = query.get("oauth_verifier");
+      if (oauth_token && oauth_verifier) {
+        return axios
+          .post(`${API_URL}/twitter-auth`, {
+            oauth_token,
+            oauth_verifier,
+          })
+          .then((r) => console.log(r.data));
+      } else {
+        return Promise.reject({ message: "Missing Twitter Token" });
+      }
     }
-    
+
     const code = query.get("code");
     return axios
       .post(`${API_URL}/github-auth`, {
@@ -25,11 +36,11 @@ const AuthPage = () => {
         setUser(r.data);
         localStorage.setItem("githubToken", r.data.accessToken);
         router.push("/");
-      })
+      });
   }, [setUser]);
   return (
     <Layout title="Authentication | Floss">
-      <DataLoader loadAsync={auth}/>
+      <DataLoader loadAsync={auth} />
     </Layout>
   );
 };

@@ -2,6 +2,8 @@ import AWS from "aws-sdk";
 import format from "date-fns/format";
 import Stripe from "stripe";
 import axios, { AxiosResponse } from "axios";
+import OAuth from "oauth-1.0a";
+import crypto from "crypto";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -253,3 +255,14 @@ export const sendMeEmail = (subject: string, body: string) =>
       Source: "no-reply@floss.davidvargas.me",
     })
     .promise();
+
+export const twitterOAuth = new OAuth({
+  consumer: {
+    key: process.env.TWITTER_CONSUMER_KEY || "",
+    secret: process.env.TWITTER_CONSUMER_SECRET || "",
+  },
+  signature_method: "HMAC-SHA1",
+  hash_function(base_string, key) {
+    return crypto.createHmac("sha1", key).update(base_string).digest("base64");
+  },
+});
