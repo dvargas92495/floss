@@ -43,7 +43,6 @@ export const handler = async () => {
         return {
           statusCode: 302,
           headers: {
-            ...headers,
             Location: `https://api.twitter.com/oauth/authenticate?oauth_token=${parsedData.oauth_token}`,
           },
         };
