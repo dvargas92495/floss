@@ -75,7 +75,8 @@ module "aws-serverless-backend" {
         "stripe-session/post",
         "stripe-setup-intent/post",
         "stripe-payment-methods/get",
-        "stripe-payment-succeeded/post"
+        "stripe-payment-succeeded/post",
+        "twitter-login/post"
     ]
     tags = {
         Application = "Floss"
