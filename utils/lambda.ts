@@ -114,7 +114,7 @@ export const getFlossUserByEmail = (email: string) =>
 export const upsertUser = async (
   name: string,
   email: string,
-  accessToken: string,
+  accessToken: string
 ) => {
   const dynamoResponse = await getFlossUserByEmail(email);
 
@@ -311,3 +311,46 @@ export const twitterOAuth = new OAuth({
     return crypto.createHmac("sha1", key).update(base_string).digest("base64");
   },
 });
+
+export const twitterLogin = ({
+  oauth_token,
+  oauth_token_secret,
+}: {
+  oauth_token: string;
+  oauth_token_secret: string;
+}) => {
+  const credentialHeaders = twitterOAuth.toHeader(
+    twitterOAuth.authorize(
+      {
+        url: `https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true&include_email=true`,
+        method: "GET",
+      },
+      { key: oauth_token, secret: oauth_token_secret }
+    )
+  );
+  return axios
+    .get(
+      `https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true&include_email=true`,
+      {
+        headers: credentialHeaders,
+      }
+    )
+    .then(async (c) => {
+      const { name, email, profile_image_url_https: avatar_url } = c.data;
+      const accessToken = JSON.stringify({
+        oauth_token,
+        oauth_token_secret,
+      });
+      await upsertUser(name, email, accessToken);
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          name,
+          email,
+          avatar_url,
+          accessToken,
+        }),
+        headers,
+      };
+    });
+};

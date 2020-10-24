@@ -5,6 +5,7 @@ import UserContext from "../components/UserContext";
 import { User } from "../interfaces";
 import axios from "axios";
 import { MDXProvider } from "@mdx-js/react";
+import { API_URL } from "../utils/client";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const [user, setUser] = useState<User>();
@@ -30,7 +31,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         )
         .catch((e) => console.error(e.response?.data || e.message));
     } else if (twitterToken && !user) {
-      
+      axios
+        .post(`${API_URL}/twitter-auto`, JSON.parse(twitterToken))
+        .then((r) => setUser(r.data))
+        .catch((e) => console.error(e.response?.data || e.message));
     }
   }, [user, setUser]);
   return (
