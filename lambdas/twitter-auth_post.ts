@@ -1,6 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
-import { headers, twitterLogin, twitterOAuth, upsertUser } from "../utils/lambda";
+import { headers, twitterLogin, twitterOAuth } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const data = JSON.parse(event.body || "{}");
@@ -21,7 +21,7 @@ export const handler = async (event: APIGatewayEvent) => {
         r.data.split("&").map((s: string) => s.split("="))
       );
       const { oauth_token, oauth_token_secret } = parsedData;
-      return twitterLogin({oauth_token, oauth_token_secret});
+      return twitterLogin({ oauth_token, oauth_token_secret });
     })
     .catch((e) => ({
       statusCode: 500,
