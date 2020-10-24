@@ -1,14 +1,10 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
-import { v4 } from "uuid";
 import {
-  dynamo,
   getEmailFromHeaders,
-  getFlossUserByEmail,
   getUser,
   headers,
   sendMeEmail,
-  stripe,
   upsertUser,
 } from "../utils/lambda";
 
