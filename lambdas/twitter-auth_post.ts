@@ -23,7 +23,7 @@ export const handler = async (event: APIGatewayEvent) => {
       const { oauth_token } = parsedData;
       const credentialHeaders = twitterOAuth.toHeader(
         twitterOAuth.authorize({
-          url: "https://api.twitter.com/1.1/account/verify_credentials?oauth_token=${oauth_token}",
+          url: `https://api.twitter.com/1.1/account/verify_credentials?oauth_token=${oauth_token}`,
           method: "GET",
         })
       );
