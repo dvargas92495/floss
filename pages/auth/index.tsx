@@ -21,7 +21,12 @@ const AuthPage = () => {
             oauth_token,
             oauth_verifier,
           })
-          .then((r) => console.log(r.data));
+          .then((r) => {
+            console.log(r.data);
+            setUser(r.data);
+            localStorage.setItem("twitterToken", r.data.accessToken);
+            router.push("/");
+          });
       } else {
         return Promise.reject({ message: "Missing Twitter Token" });
       }

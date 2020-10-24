@@ -24,7 +24,7 @@ export const handler = async (event: APIGatewayEvent) => {
       const credentialHeaders = twitterOAuth.toHeader(
         twitterOAuth.authorize(
           {
-            url: `https://api.twitter.com/1.1/account/verify_credentials.json`,
+            url: `https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true&include_email=true`,
             method: "GET",
           },
           { key: oauth_token, secret: oauth_token_secret }
@@ -33,17 +33,17 @@ export const handler = async (event: APIGatewayEvent) => {
       console.log(parsedData);
       console.log(credentialHeaders);
       return axios
-        .get(`https://api.twitter.com/1.1/account/verify_credentials.json`, {
+        .get(`https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true&include_email=true`, {
           headers: credentialHeaders,
         })
         .then((c) => ({
           statusCode: 200,
-          body: JSON.stringify({ d: c.data, u: {
+          body: JSON.stringify({
             name: c.data.name,
             email: c.data.email,
             avatar_url: c.data.profile_image_url_https,
-            accessToken: c.data.oauth_token
-          }}),
+            accessToken: oauth_token
+          }),
           headers,
         }));
     })
