@@ -62,7 +62,7 @@ const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
             <ListItem autoFocus button>
               <ListItemAvatar>
                 <Avatar>
-                  <GitHub />
+                  <GitHub color={"primary"} />
                 </Avatar>
               </ListItemAvatar>
               <ListItemText primary="Log In With GitHub" />
@@ -79,7 +79,7 @@ const Layout: FunctionComponent<Props> = ({ children, title = "Floss" }) => {
             >
               <ListItemAvatar>
                 <Avatar>
-                  <Twitter />
+                  <Twitter color={"primary"} />
                 </Avatar>
               </ListItemAvatar>
               <ListItemText primary="Log In With Twitter" />
