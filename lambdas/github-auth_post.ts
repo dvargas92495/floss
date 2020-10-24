@@ -9,6 +9,7 @@ import {
   headers,
   sendMeEmail,
   stripe,
+  upsertUser,
 } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
@@ -46,43 +47,7 @@ export const handler = async (event: APIGatewayEvent) => {
           headers,
         }));
       }
-      const dynamoResponse = await getFlossUserByEmail(email);
-
-      if (!dynamoResponse.Items || dynamoResponse.Count === 0) {
-        const client = await stripe.customers.create({
-          email,
-          name,
-        });
-        const uuid = v4();
-        await dynamo
-          .putItem({
-            Item: {
-              uuid: {
-                S: uuid,
-              },
-              client: {
-                S: client.id,
-              },
-              email: {
-                S: email,
-              },
-              accessToken: {
-                S: accessToken,
-              },
-            },
-            TableName: "FlossUsers",
-          })
-          .promise();
-      } else {
-        const Item = dynamoResponse.Items[0];
-        Item.accessToken.S = accessToken;
-        await dynamo
-          .putItem({
-            Item,
-            TableName: "FlossUsers",
-          })
-          .promise();
-      }
+      await upsertUser(name, email, accessToken);
 
       return {
         statusCode: 200,

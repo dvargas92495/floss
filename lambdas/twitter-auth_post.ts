@@ -1,6 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
-import { headers, twitterOAuth } from "../utils/lambda";
+import { headers, twitterOAuth, upsertUser } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const data = JSON.parse(event.body || "{}");
@@ -30,22 +30,31 @@ export const handler = async (event: APIGatewayEvent) => {
           { key: oauth_token, secret: oauth_token_secret }
         )
       );
-      console.log(parsedData);
-      console.log(credentialHeaders);
       return axios
-        .get(`https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true&include_email=true`, {
-          headers: credentialHeaders,
-        })
-        .then((c) => ({
-          statusCode: 200,
-          body: JSON.stringify({
-            name: c.data.name,
-            email: c.data.email,
-            avatar_url: c.data.profile_image_url_https,
-            accessToken: oauth_token
-          }),
-          headers,
-        }));
+        .get(
+          `https://api.twitter.com/1.1/account/verify_credentials.json?skip_status=true&include_email=true`,
+          {
+            headers: credentialHeaders,
+          }
+        )
+        .then(async (c) => {
+          const { name, email, profile_image_url_https: avatar_url } = c.data;
+          const accessToken = JSON.stringify({
+            oauth_token,
+            oauth_token_secret,
+          });
+          await upsertUser(name, email, accessToken);
+          return {
+            statusCode: 200,
+            body: JSON.stringify({
+              name,
+              email,
+              avatar_url,
+              accessToken,
+            }),
+            headers,
+          };
+        });
     })
     .catch((e) => ({
       statusCode: 500,

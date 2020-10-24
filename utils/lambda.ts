@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import axios, { AxiosResponse } from "axios";
 import OAuth from "oauth-1.0a";
 import crypto from "crypto";
+import { v4 } from "uuid";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -109,6 +110,50 @@ export const getFlossUserByEmail = (email: string) =>
       },
     })
     .promise();
+
+export const upsertUser = async (
+  name: string,
+  email: string,
+  accessToken: string,
+) => {
+  const dynamoResponse = await getFlossUserByEmail(email);
+
+  if (!dynamoResponse.Items || dynamoResponse.Count === 0) {
+    const client = await stripe.customers.create({
+      email,
+      name,
+    });
+    const uuid = v4();
+    await dynamo
+      .putItem({
+        Item: {
+          uuid: {
+            S: uuid,
+          },
+          client: {
+            S: client.id,
+          },
+          email: {
+            S: email,
+          },
+          accessToken: {
+            S: accessToken,
+          },
+        },
+        TableName: "FlossUsers",
+      })
+      .promise();
+  } else {
+    const Item = dynamoResponse.Items[0];
+    Item.accessToken.S = accessToken;
+    await dynamo
+      .putItem({
+        Item,
+        TableName: "FlossUsers",
+      })
+      .promise();
+  }
+};
 
 export const activateContractByStripeId = (id: string) =>
   dynamo

@@ -12,6 +12,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     const accessToken =
       localStorage.getItem("githubToken") ||
       process.env.NEXT_PUBLIC_GITHUB_TOKEN;
+    const twitterToken = localStorage.getItem("twitterToken");
     if (accessToken && !user) {
       axios
         .get(`https://api.github.com/user?access_token=${accessToken}`, {
@@ -28,6 +29,8 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           })
         )
         .catch((e) => console.error(e.response?.data || e.message));
+    } else if (twitterToken && !user) {
+      
     }
   }, [user, setUser]);
   return (

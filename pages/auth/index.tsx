@@ -22,7 +22,6 @@ const AuthPage = () => {
             oauth_verifier,
           })
           .then((r) => {
-            console.log(r.data);
             setUser(r.data);
             localStorage.setItem("twitterToken", r.data.accessToken);
             router.push("/");

@@ -77,6 +77,7 @@ module "aws-serverless-backend" {
         "stripe-payment-methods/get",
         "stripe-payment-succeeded/post",
         "twitter-auth/post",
+        "twitter-auto/post",
         "twitter-login/post"
     ]
     tags = {
