@@ -1,14 +1,14 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
   dynamo,
-  getEmailFromHeaders,
-  getFlossUserByEmail,
+  getStripeCustomer,
   headers,
   stripe,
   toPriority,
   validateGithubLink,
 } from "../utils/lambda";
 import { v4 } from "uuid";
+import Stripe from 'stripe';
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
@@ -16,11 +16,13 @@ export const handler = async (event: APIGatewayEvent) => {
     reward,
     dueDate,
     paymentMethod,
+    mode = "payment",
   }: {
     link: string;
     dueDate: string;
     reward: number;
     paymentMethod: string;
+    mode?: Stripe.Checkout.SessionCreateParams.Mode;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const response = await validateGithubLink(link);
@@ -28,17 +30,8 @@ export const handler = async (event: APIGatewayEvent) => {
     return response;
   }
 
-  const createdBy = await getEmailFromHeaders(reqHeaders.Authorization);
-  const flossUser = await getFlossUserByEmail(createdBy);
-  if (flossUser.Count === 0 || !flossUser.Items) {
-    return {
-      statusCode: 500,
-      body: `Could not find Floss user for ${createdBy}`,
-      headers,
-    };
-  }
+  const { customer, email: createdBy} = await getStripeCustomer(reqHeaders.Authorization);
   const uuid = v4();
-  const customer = flossUser.Items[0].client.S;
   const putItemProps = (sessionId: string) => ({
     Item: {
       uuid: {
@@ -83,7 +76,7 @@ export const handler = async (event: APIGatewayEvent) => {
         .create({
           customer,
           payment_method_types: ["card"],
-          line_items: [
+          line_items: mode === 'setup' ? [] : [
             {
               price_data: {
                 currency: "usd",
@@ -96,13 +89,13 @@ export const handler = async (event: APIGatewayEvent) => {
               quantity: 1,
             },
           ],
-          mode: "payment",
-          success_url: `${reqHeaders.Origin}/contracts?success=true`,
-          cancel_url: `${reqHeaders.Origin}/contracts?cancel=true`,
+          mode,
+          success_url: `${reqHeaders.Origin}/checkout?success=true`,
+          cancel_url: `${reqHeaders.Origin}/checkout?cancel=true`,
         })
         .then((session) =>
           dynamo
-            .putItem(putItemProps(session.payment_intent as string))
+            .putItem(putItemProps((session.payment_intent || session.setup_intent) as string))
             .promise()
             .then(() => ({
               statusCode: 200,

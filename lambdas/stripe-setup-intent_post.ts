@@ -1,8 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
   dynamo,
-  getEmailFromHeaders,
-  getFlossUserByEmail,
+  getStripeCustomer,
   headers,
   stripe,
   toPriority,
@@ -28,17 +27,7 @@ export const handler = async (event: APIGatewayEvent) => {
     return response;
   }
 
-  const createdBy = await getEmailFromHeaders(reqHeaders.Authorization);
-  const flossUser = await getFlossUserByEmail(createdBy);
-  if (flossUser.Count === 0 || !flossUser.Items) {
-    return {
-      statusCode: 500,
-      body: `Could not find Floss user for ${createdBy}`,
-      headers,
-    };
-  }
-
-  const customer = flossUser.Items[0].client.S || "";
+  const { customer, email: createdBy} = await getStripeCustomer(reqHeaders.Authorization);
   const uuid = v4();
   const putItemProps = (intentId: string) => ({
     Item: {

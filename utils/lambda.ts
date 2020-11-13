@@ -216,14 +216,59 @@ export const getUser = async (Authorization: string) =>
     })
   ).data;
 
-export const getEmailFromHeaders = async (Authorization: string) =>
-  (
-    await axios.get(`https://api.github.com/user/emails`, {
-      headers: {
-        Authorization,
-      },
-    })
-  ).data.find((e: { primary: boolean }) => e.primary)?.email;
+export const getEmailFromHeaders = (Authorization: string) =>
+  Authorization.startsWith("token ")
+    ? axios
+        .get(`https://api.github.com/user/emails`, {
+          headers: {
+            Authorization,
+          },
+        })
+        .then(
+          (r: AxiosResponse<{ primary: boolean; email: string }[]>) =>
+            r.data.find((e) => e.primary)?.email || ""
+        )
+    : Promise.resolve(
+        Buffer.from(
+          Authorization.substring("Basic ".length),
+          "base64"
+        ).toString()
+      );
+
+export const getStripeCustomer = async (Authorization: string) => {
+  const email = await getEmailFromHeaders(Authorization);
+  const flossUser = await getFlossUserByEmail(email);
+  if (flossUser.Count === 0 || !flossUser.Items) {
+    const customers = await stripe.customers.list({ email });
+    if (customers.data.length > 1) {
+      sendMeEmail(
+        "Floss - getStripeCustomer - Warning",
+        `Multiple customers with the email address ${email}`
+      );
+    }
+    if (customers.data.length === 0) {
+      const customer = (
+        await stripe.customers.create({
+          email,
+        })
+      ).id;
+      return {
+        customer,
+        email,
+      };
+    } else {
+      return {
+        customer: customers.data[0].id,
+        email,
+      };
+    }
+  } else {
+    return {
+      email,
+      customer: flossUser.Items[0].client.S || "",
+    };
+  }
+};
 
 type GithubModel = {
   html_url: string;
