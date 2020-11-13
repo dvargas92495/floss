@@ -33,7 +33,7 @@ export const handler = async (event: APIGatewayEvent) =>
       }))
     )
     .catch((e) => ({
-      statusCode: 200,
+      statusCode: 500,
       body: e.message,
       headers,
     }));
