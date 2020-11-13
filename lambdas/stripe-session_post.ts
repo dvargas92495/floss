@@ -30,6 +30,7 @@ export const handler = async (event: APIGatewayEvent) => {
     return response;
   }
 
+  const origin = reqHeaders.Origin || reqHeaders.origin;
   const { customer, email: createdBy } = await getStripeCustomer(
     reqHeaders.Authorization
   );
@@ -98,8 +99,8 @@ export const handler = async (event: APIGatewayEvent) => {
                   },
                 ],
           mode,
-          success_url: `${reqHeaders.Origin}/checkout?success=true`,
-          cancel_url: `${reqHeaders.Origin}/checkout?cancel=true`,
+          success_url: `${origin}/checkout?success=true`,
+          cancel_url: `${origin}/checkout?cancel=true`,
         })
         .then((session) =>
           dynamo
