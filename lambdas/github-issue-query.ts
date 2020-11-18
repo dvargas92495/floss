@@ -81,6 +81,12 @@ export const handler = () =>
           })
           .then((r) =>
             Promise.all(r.map((pi) => stripe.paymentIntents.create(pi)))
+          )
+          .then((r) =>
+            r.map((pi) => ({
+              amount: pi.amount / 100,
+              customer: pi.customer,
+            }))
           );
 
         const today = new Date();
@@ -115,11 +121,17 @@ export const handler = () =>
                 .create({
                   payment_intent: c.Attributes?.stripe.S,
                 })
+                .then((sr) => stripe.paymentIntents.retrieve(sr.payment_intent as string))
+                .then((pi) => ({
+                  amount: pi.amount / 100,
+                  customer: pi.customer,
+                }))
                 .catch((e) => {
                   if (e.raw?.code === "charge_already_refunded") {
                     console.error(
                       `${e.raw.message} for Contract ${c.Attributes?.uuid.S}`
                     );
+                    return { amount: 0, customer: ""};
                   } else {
                     throw new Error(e);
                   }
@@ -132,8 +144,16 @@ export const handler = () =>
           `Floss Nightly Summary`,
           `
 Successfully closed ${successfulCompletions.length} contracts.
-               
+${successfulCompletions.map(
+  (completion) =>
+    ` - Customer https://dashboard.stripe.com/customers/${completion.customer} paid ${completion.amount}`
+)}
+
 Successfully refunded ${successfulRefunds.length} contracts.
+${successfulRefunds.map(
+  (refund) =>
+    ` - Customer https://dashboard.stripe.com/customers/${refund.customer} refunded ${refund.amount}`
+)}
               `
         );
       })
