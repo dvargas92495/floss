@@ -10,6 +10,7 @@ import {
 import isAfter from "date-fns/isAfter";
 import parse from "date-fns/parse";
 import { DynamoDB } from "aws-sdk";
+import Stripe from "stripe";
 
 const getDueDate = (i: DynamoDB.AttributeMap) => {
   const dueDateString = parsePriority(i).dueDate;
@@ -56,38 +57,70 @@ export const handler = () =>
             })
             .promise()
         );
-        const successfulCompletions = await Promise.all(completionPromises)
-          .then((r) => {
-            console.log(`Completed ${r.length} contracts!`);
-            const contractsToCharge = r.filter((c) =>
-              c.Attributes?.stripe?.S?.startsWith("seti_")
-            );
-            console.log(
-              `Let's get paid for ${contractsToCharge.length} contracts!`
-            );
-            const stripeSetups = contractsToCharge.map((c) =>
-              stripe.setupIntents
-                .retrieve(c.Attributes?.stripe.S || "")
-                .then((si) => ({
-                  amount: (parsePriority(c.Attributes).reward || 0) * 100,
-                  currency: "usd",
-                  customer: si.customer as string,
-                  payment_method: si.payment_method as string,
-                  off_session: true,
-                  confirm: true,
-                }))
-            );
-            return Promise.all(stripeSetups);
-          })
-          .then((r) =>
-            Promise.all(r.map((pi) => stripe.paymentIntents.create(pi)))
-          )
-          .then((r) =>
-            r.map((pi) => ({
-              amount: pi.amount / 100,
-              customer: pi.customer,
-            }))
+        const successfulCompletions = await Promise.all(
+          completionPromises
+        ).then((r) => {
+          console.log(`Completed ${r.length} contracts!`);
+          const contractsToCharge = r.filter((c) =>
+            c.Attributes?.stripe?.S?.startsWith("seti_")
           );
+          console.log(
+            `Let's get paid for ${contractsToCharge.length} contracts!`
+          );
+          const stripeSetups = contractsToCharge.map((c) =>
+            stripe.setupIntents
+              .retrieve(c.Attributes?.stripe.S || "")
+              .then((si) =>
+                stripe.customers
+                  .retrieve(si.customer as string)
+                  .then(async (cus) => {
+                    if (cus.deleted) {
+                      return {
+                        customer: cus.id,
+                        balanceAmount: 0,
+                        paymentAmount: 0,
+                      };
+                    }
+                    const customer = cus as Stripe.Customer;
+                    const initialAmount =
+                      (parsePriority(c.Attributes).reward || 0) * 100;
+                    const balanceAmount =
+                      customer.balance < 0
+                        ? await stripe.customers
+                            .createBalanceTransaction(customer.id, {
+                              amount: Math.min(
+                                -customer.balance,
+                                initialAmount
+                              ),
+                              currency: "usd",
+                              description: `Funding for ${c.Attributes?.link?.S}`,
+                            })
+                            .then((transaction) => transaction.amount / 100)
+                        : 0;
+                    const amount = initialAmount + customer.balance;
+                    const paymentAmount =
+                      amount > 0
+                        ? await stripe.paymentIntents
+                            .create({
+                              amount,
+                              currency: "usd",
+                              customer: si.customer as string,
+                              payment_method: si.payment_method as string,
+                              off_session: true,
+                              confirm: true,
+                            })
+                            .then((pi) => pi.amount / 100)
+                        : 0;
+                    return {
+                      customer: customer.id,
+                      balanceAmount,
+                      paymentAmount,
+                    };
+                  })
+              )
+          );
+          return Promise.all(stripeSetups);
+        });
 
         const today = new Date();
         const overdues = ghIssues.filter(
@@ -121,7 +154,9 @@ export const handler = () =>
                 .create({
                   payment_intent: c.Attributes?.stripe.S,
                 })
-                .then((sr) => stripe.paymentIntents.retrieve(sr.payment_intent as string))
+                .then((sr) =>
+                  stripe.paymentIntents.retrieve(sr.payment_intent as string)
+                )
                 .then((pi) => ({
                   amount: pi.amount / 100,
                   customer: pi.customer,
@@ -131,7 +166,7 @@ export const handler = () =>
                     console.error(
                       `${e.raw.message} for Contract ${c.Attributes?.uuid.S}`
                     );
-                    return { amount: 0, customer: ""};
+                    return { amount: 0, customer: "" };
                   } else {
                     throw new Error(e);
                   }
@@ -146,7 +181,7 @@ export const handler = () =>
 Successfully closed ${successfulCompletions.length} contracts.
 ${successfulCompletions.map(
   (completion) =>
-    ` - Customer https://dashboard.stripe.com/customers/${completion.customer} paid ${completion.amount}`
+    ` - Customer https://dashboard.stripe.com/customers/${completion.customer} paid ${completion.paymentAmount} and debited ${completion.balanceAmount}`
 )}
 
 Successfully refunded ${successfulRefunds.length} contracts.
