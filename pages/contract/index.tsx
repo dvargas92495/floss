@@ -18,7 +18,7 @@ const ContractPage = () => {
   const [name, setName] = useState("");
   const getContract = useCallback(() => {
     const query = new URLSearchParams(window.location.search);
-    const uuid = query.get("id");
+    const uuid = query.get("uuid");
     return axios.get(`${API_URL}/contract?uuid=${uuid}`).then((res) => {
       setContract(res.data.contract);
       setName(res.data.title);
