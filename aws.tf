@@ -44,6 +44,14 @@ variable "twitter_consumer_secret" {
     type = string
 }
 
+variable "auth0_client_id" {
+    type = string
+}
+
+variable "auth0_client_secret" {
+    type = string
+}
+
 provider "aws" {
     region = "us-east-1"
 }
@@ -366,4 +374,16 @@ resource "github_actions_secret" "twitter_consumer_secret" {
   repository       = "floss"
   secret_name      = "TWITTER_CONSUMER_SECRET"
   plaintext_value  = var.twitter_consumer_secret
+}
+
+resource "github_actions_secret" "auth0_client_id" {
+  repository       = "floss"
+  secret_name      = "AUTH0_CLIENT_ID"
+  plaintext_value  = var.auth0_client_id
+}
+
+resource "github_actions_secret" "auth0_client_secret" {
+  repository       = "floss"
+  secret_name      = "AUTH0_CLIENT_SECRET"
+  plaintext_value  = var.auth0_client_secret
 }
