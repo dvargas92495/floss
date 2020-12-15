@@ -1,6 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 const Dotenv = require("dotenv-webpack");
+const webpack = require('webpack');
 
 const extensions = fs.readdirSync("./lambdas/");
 const entry = Object.fromEntries(
@@ -43,5 +44,7 @@ module.exports = {
       path: ".env.local",
       systemvars: true,
     }),
+    // https://github.com/auth0/node-auth0/issues/493#issuecomment-668949147
+    new webpack.DefinePlugin({ "global.GENTLY": false }),
   ],
 };
