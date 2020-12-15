@@ -22,6 +22,7 @@
     "@stripe/react-stripe-js": "^1.1.2",
     "@stripe/stripe-js": "^1.9.0",
     "@truffle/contract": "^4.2.21",
+    "auth0": "^2.31.0",
     "aws-sdk": "^2.751.0",
     "axios": "^0.20.0",
     "date-fns": "^2.16.1",
@@ -35,6 +36,7 @@
     "web3": "^1.2.11"
   },
   "devDependencies": {
+    "@types/auth0": "^2.20.11",
     "@types/aws-lambda": "^8.10.62",
     "@types/marked": "^1.1.0",
     "@types/mdx-js__react": "^1.5.3",
