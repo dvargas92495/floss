@@ -11,7 +11,7 @@ export const handler = async (event: APIGatewayEvent) => {
     .then((customer) => ({
       statusCode: 200,
       body: JSON.stringify({
-        balace: -(customer as Stripe.Customer).balance,
+        balance: -(customer as Stripe.Customer).balance/100,
       }),
       headers,
     }))
