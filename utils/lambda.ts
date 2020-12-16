@@ -12,6 +12,7 @@ export const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2020-08-27",
+  maxNetworkRetries: 3,
 });
 
 export const headers = {
