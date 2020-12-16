@@ -5,7 +5,7 @@ import Stripe from 'stripe';
 export const handler = async (event: APIGatewayEvent) => {
   const eventHeaders = event.headers;
   return auth0UserClient
-    .getProfile(eventHeaders.Authorization)
+    .getProfile(eventHeaders.Authorization.substring('Bearer '.length))
     .then((user) => stripe.customers.retrieve(user.user_metadata.stripe))
     .then((customer) => ({
       statusCode: 200,
