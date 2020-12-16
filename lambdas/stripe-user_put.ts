@@ -9,6 +9,7 @@ const client = new ManagementClient({
 });
 
 export const handler = async (event: APIGatewayEvent) => {
+  console.log(JSON.parse(event.body || "{}"));
   const { id, email } = JSON.parse(event.body || "{}");
   const existingCustomers = await stripe.customers.list({
     email,
