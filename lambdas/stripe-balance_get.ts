@@ -1,15 +1,13 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { headers, stripe, auth0UserClient } from "../utils/lambda";
+import { headers, stripe, auth0UserClient, auth0Client } from "../utils/lambda";
 import Stripe from "stripe";
 
 export const handler = async (event: APIGatewayEvent) => {
   const eventHeaders = event.headers;
   return auth0UserClient
     .getProfile(eventHeaders.Authorization.substring("Bearer ".length))
-    .then((user) => {
-      console.log(user);
-      return stripe.customers.retrieve(user.user_metadata.stripe);
-    })
+    .then((user) => auth0Client.getUser({id: user.sub}))
+    .then((user) => stripe.customers.retrieve(user?.app_metadata?.stripe))
     .then((customer) => ({
       statusCode: 200,
       body: JSON.stringify({

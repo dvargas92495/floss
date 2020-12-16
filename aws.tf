@@ -77,6 +77,7 @@ module "aws-serverless-backend" {
         "contract/post",
         "contract/put",
         "contracts/get",
+        "contract-by-email/get",
         "issue/get",
         "project/get",
         "github-auth/post",
