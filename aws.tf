@@ -80,6 +80,7 @@ module "aws-serverless-backend" {
         "issue/get",
         "project/get",
         "github-auth/post",
+        "stripe-balance/get",
         "stripe-session/post",
         "stripe-setup-intent/post",
         "stripe-payment-methods/get",
