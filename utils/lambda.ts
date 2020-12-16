@@ -5,6 +5,7 @@ import axios, { AxiosResponse } from "axios";
 import OAuth from "oauth-1.0a";
 import crypto from "crypto";
 import { v4 } from "uuid";
+import { ManagementClient, AuthenticationClient } from "auth0";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -13,6 +14,17 @@ export const ses = new AWS.SES({ apiVersion: "2010-12-01" });
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
   apiVersion: "2020-08-27",
   maxNetworkRetries: 3,
+});
+
+export const auth0Client = new ManagementClient({
+  clientId: process.env.AUTH0_CLIENT_ID || "",
+  clientSecret: process.env.AUTH0_CLIENT_SECRET || "",
+  domain: "vargas-arts.us.auth0.com",
+});
+
+export const auth0UserClient = new AuthenticationClient({
+  clientId: process.env.AUTH0_CLIENT_ID || "",
+  domain: "vargas-arts.us.auth0.com", 
 });
 
 export const headers = {

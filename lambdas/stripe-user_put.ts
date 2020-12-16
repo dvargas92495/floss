@@ -1,12 +1,5 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { headers, stripe } from "../utils/lambda";
-import { ManagementClient } from "auth0";
-
-const client = new ManagementClient({
-  clientId: process.env.AUTH0_CLIENT_ID || "",
-  clientSecret: process.env.AUTH0_CLIENT_SECRET || "",
-  domain: "vargas-arts.us.auth0.com",
-});
+import { auth0Client, headers, stripe } from "../utils/lambda";
 
 const resolveName = (name: string) => {
   switch (name) {
@@ -35,7 +28,7 @@ export const handler = async (event: APIGatewayEvent) => {
     : await stripe.customers.create({
         email,
       });
-  await client.updateAppMetadata({ id }, { stripe: customer.id });
+  await auth0Client.updateAppMetadata({ id }, { stripe: customer.id });
   return {
     statusCode: 200,
     body: JSON.stringify({
