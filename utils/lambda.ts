@@ -6,6 +6,7 @@ import OAuth from "oauth-1.0a";
 import crypto from "crypto";
 import { v4 } from "uuid";
 import { ManagementClient, AuthenticationClient } from "auth0";
+import { APIGatewayEvent } from "aws-lambda";
 
 AWS.config = new AWS.Config({ region: "us-east-1" });
 export const dynamo = new AWS.DynamoDB({ apiVersion: "2012-08-10" });
@@ -24,7 +25,7 @@ export const auth0Client = new ManagementClient({
 
 export const auth0UserClient = new AuthenticationClient({
   clientId: process.env.AUTH0_CLIENT_ID || "",
-  domain: "vargas-arts.us.auth0.com", 
+  domain: "vargas-arts.us.auth0.com",
 });
 
 export const headers = {
@@ -412,3 +413,8 @@ export const twitterLogin = ({
       };
     });
 };
+
+export const getAuth0UserFromEvent = (event: APIGatewayEvent) =>
+  auth0UserClient.getProfile(
+    event.headers.Authorization.substring("Bearer ".length)
+  );
