@@ -284,7 +284,7 @@ export const getStripeCustomer = async (Authorization: string) => {
   }
 };
 
-type GithubModel = {
+export type GithubModel = {
   html_url: string;
   state: "open" | "closed";
   title: string;
@@ -292,6 +292,7 @@ type GithubModel = {
   repository_url: string;
   columns_url: string;
   body: string;
+  labels?: {name: string}[];
 };
 
 export const projectOpts = {

@@ -1,18 +1,11 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { DynamoDB } from "aws-sdk";
 import {
   dynamo,
   getAuth0UserFromEvent,
+  getAxiosByGithubLink,
   headers,
   parsePriority,
 } from "../utils/lambda";
-
-const mapItem = (i: DynamoDB.AttributeMap) => ({
-  uuid: i.uuid.S,
-  link: i.link.S,
-  createdBy: i.createdBy.S,
-  ...parsePriority(i),
-});
 
 export const handler = async (event: APIGatewayEvent) =>
   getAuth0UserFromEvent(event).then((user) =>
@@ -31,10 +24,27 @@ export const handler = async (event: APIGatewayEvent) =>
         },
       })
       .promise()
-      .then((r) => ({
+      .then((r) =>
+        r.Count && r.Items
+          ? Promise.all(
+              r.Items.map((i) =>
+                getAxiosByGithubLink(i.link.S).then((g) => ({
+                  name: g.title,
+                  label: g.labels
+                    ? g.labels.map(({ name }) => name).join(",")
+                    : "",
+                  uuid: i.uuid.S,
+                  link: i.link.S,
+                  ...parsePriority(i),
+                }))
+              )
+            )
+          : Promise.resolve([])
+      )
+      .then((contracts) => ({
         statusCode: 200,
         body: JSON.stringify({
-          contracts: r.Items?.map(mapItem),
+          contracts,
         }),
         headers,
       }))
