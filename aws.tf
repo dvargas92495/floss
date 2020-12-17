@@ -126,6 +126,11 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     type = "S"
   }
 
+  attribute {
+    name = "createdBy"
+    type = "S"
+  }
+
   global_secondary_index {
     hash_key           = "link"
     name               = "link-index"
@@ -150,6 +155,16 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
     name               = "stripe-index"
     non_key_attributes = []
     projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
+  global_secondary_index {
+    hash_key           = "createdBy"
+    name               = "createdBy-lifecycle-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    range_key          = "lifecycle"
     read_capacity      = 0
     write_capacity     = 0
   }
