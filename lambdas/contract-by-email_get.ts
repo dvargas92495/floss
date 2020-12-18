@@ -54,7 +54,7 @@ export const handler = async (event: APIGatewayEvent) =>
       console.log(e);
       return {
         statusCode: 500,
-        body: e.message,
+        body: e.response?.data?.message || e.message,
         headers,
       };
     });

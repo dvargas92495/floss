@@ -230,26 +230,42 @@ export const getUser = async (Authorization: string) =>
     })
   ).data;
 
-export const getEmailFromHeaders = (Authorization: string) =>
-  Authorization.startsWith("token ")
-    ? axios
-        .get(`https://api.github.com/user/emails`, {
-          headers: {
-            Authorization,
-          },
-        })
-        .then(
-          (r: AxiosResponse<{ primary: boolean; email: string }[]>) =>
-            r.data.find((e) => e.primary)?.email || ""
-        )
-    : Promise.resolve(
-        Buffer.from(
-          Authorization.substring("Basic ".length),
-          "base64"
-        ).toString()
+export const getEmailFromHeaders = (Authorization: string) => {
+  if (Authorization.startsWith("Bearer ")) {
+    return auth0UserClient
+      .getProfile(Authorization.substring("Bearer ".length))
+      .then((u) => u.email);
+  } else if (Authorization.startsWith("token ")) {
+    return axios
+      .get(`https://api.github.com/user/emails`, {
+        headers: {
+          Authorization,
+        },
+      })
+      .then(
+        (r: AxiosResponse<{ primary: boolean; email: string }[]>) =>
+          r.data.find((e) => e.primary)?.email || ""
       );
+  } else if (Authorization.startsWith("Basic ")) {
+    return Promise.resolve(
+      Buffer.from(Authorization.substring("Basic ".length), "base64").toString()
+    );
+  } else {
+    return Authorization;
+  }
+};
 
 export const getStripeCustomer = async (Authorization: string) => {
+  if (Authorization.startsWith("Bearer ")) {
+    const user = await auth0UserClient.getProfile(
+      Authorization.substring("Bearer ".length)
+    );
+    const { app_metadata } = await auth0Client.getUser({ id: user.sub });
+    return {
+      email: user.email,
+      customer: app_metadata?.stripe,
+    };
+  }
   const email = await getEmailFromHeaders(Authorization);
   const flossUser = await getFlossUserByEmail(email);
   if (flossUser.Count === 0 || !flossUser.Items) {
@@ -292,7 +308,7 @@ export type GithubModel = {
   repository_url: string;
   columns_url: string;
   body: string;
-  labels?: {name: string}[];
+  labels?: { name: string }[];
 };
 
 export const projectOpts = {
