@@ -1,25 +1,13 @@
 import { APIGatewayEvent } from "aws-lambda";
 import Stripe from "stripe";
 import {
-  getEmailFromHeaders,
-  getFlossUserByEmail,
+  getStripeCustomer,
   headers,
   stripe,
 } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const reqHeaders = event.headers;
-  const email = await getEmailFromHeaders(reqHeaders.Authorization);
-  const flossUser = await getFlossUserByEmail(email);
-  if (flossUser.Count === 0 || !flossUser.Items) {
-    return {
-      statusCode: 500,
-      body: `Could not find Floss user for ${email}`,
-      headers,
-    };
-  }
-
-  const customer = flossUser.Items[0].client.S || "";
+  const { customer } = await getStripeCustomer(event.headers.Authorization);
   const paymentMethods = await stripe.paymentMethods
     .list({
       customer,
