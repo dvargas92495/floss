@@ -97,25 +97,44 @@ export const handler = () =>
                             })
                             .then((transaction) => transaction.amount / 100)
                         : 0;
-                    const amount = initialAmount + customer.balance;
-                    const paymentAmount =
-                      amount > 0
-                        ? await stripe.paymentIntents
-                            .create({
-                              amount,
-                              currency: "usd",
-                              customer: si.customer as string,
-                              payment_method: si.payment_method as string,
-                              off_session: true,
-                              confirm: true,
-                            })
-                            .then((pi) => pi.amount / 100)
-                        : 0;
-                    return {
-                      customer: customer.id,
-                      balanceAmount,
-                      paymentAmount,
-                    };
+                    try {
+                      const amount = initialAmount + customer.balance;
+                      const paymentAmount =
+                        amount > 0
+                          ? await stripe.paymentIntents
+                              .create({
+                                amount,
+                                currency: "usd",
+                                customer: si.customer as string,
+                                payment_method: si.payment_method as string,
+                                off_session: true,
+                                confirm: true,
+                              })
+                              .then((pi) => pi.amount / 100)
+                          : 0;
+                      return {
+                        customer: customer.id,
+                        balanceAmount,
+                        paymentAmount,
+                      };
+                    } catch (e) {
+                      console.error(e);
+                      const stripeError = e as Stripe.StripeError;
+                      if (stripeError.type === "StripeCardError") {
+                        return {
+                          customer: customer.id,
+                          balanceAmount,
+                          paymentAmount: 0,
+                          error: stripeError.message,
+                        };
+                      }
+                      return {
+                        customer: customer.id,
+                        balanceAmount,
+                        paymentAmount: 0,
+                        error: "Unknown Error",
+                      };
+                    }
                   })
               )
           );
@@ -181,7 +200,13 @@ export const handler = () =>
 Successfully closed ${successfulCompletions.length} contracts.
 ${successfulCompletions.map(
   (completion) =>
-    ` - Customer https://dashboard.stripe.com/customers/${completion.customer} paid ${completion.paymentAmount} and debited ${completion.balanceAmount}`
+    ` - Customer https://dashboard.stripe.com/customers/${
+      completion.customer
+    } ${
+      completion.error
+        ? `failed to pay due to ${completion.error}`
+        : `paid ${completion.paymentAmount}`
+    } and debited ${completion.balanceAmount}`
 )}
 
 Successfully refunded ${successfulRefunds.length} contracts.
