@@ -73,6 +73,7 @@ module "aws-serverless-backend" {
 
     api_name = "floss"
     paths = [
+        "auth-user-metadata/put",
         "contract/get",
         "contract/post",
         "contract/put",
