@@ -4,6 +4,7 @@ import {
   getContractsByLink,
   headers,
   parsePriority,
+  stripe,
 } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
@@ -15,7 +16,15 @@ export const handler = async (event: APIGatewayEvent) => {
     };
   }
   const link = `https://github.com/${event.queryStringParameters.link}`;
-  const contracts = await getContractsByLink(link);
+  const contracts = await getContractsByLink(link).then((c) =>
+    Promise.all(
+      (c.Items || []).map((i) =>
+        stripe.customers
+          .list({ email: i.createdBy.S })
+          .then((cus) => ({ i, name: cus.data[0].name || "" }))
+      )
+    )
+  );
   const issue = await getAxiosByGithubLink(link);
   return {
     statusCode: 200,
@@ -24,10 +33,11 @@ export const handler = async (event: APIGatewayEvent) => {
       body: issue.body,
       state: issue.state,
       link: issue.html_url,
-      contracts: contracts.Items?.map((i) => ({
+      contracts: contracts.map(({ i, name }) => ({
         uuid: i.uuid?.S,
         lifecycle: i.lifecycle?.S,
         createdBy: i.createdBy?.S,
+        createdByName: name,
         ...parsePriority(i),
       })),
     }),
