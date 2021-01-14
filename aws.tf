@@ -90,6 +90,7 @@ module "aws-serverless-backend" {
         "stripe-setup-intent/post",
         "stripe-payment-methods/get",
         "stripe-payment-succeeded/post",
+        "stripe-subscribe/post",
         "stripe-user/put",
         "twitter-auth/post",
         "twitter-auto/post",
