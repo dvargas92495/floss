@@ -86,6 +86,7 @@ module "aws-serverless-backend" {
         "name/put",
         "stripe-balance/get",
         "stripe-cancel/post",
+        "stripe-is-subscribed/get",
         "stripe-products/get",
         "stripe-session/post",
         "stripe-setup-intent/post",
