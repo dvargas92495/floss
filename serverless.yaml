@@ -49,6 +49,20 @@ functions:
           path: project
           method: get
           cors: true
+  stripe-cancel-post:
+    handler: out/stripe-cancel_post.handler
+    events:
+      - http:
+          path: stripe-cancel
+          method: post
+          cors: true
+  stripe-is-subscribed:
+    handler: out/stripe-is-subscribed_get.handler
+    events:
+      - http:
+          path: stripe-is-subscribed
+          method: get
+          cors: true
   stripe-payment-methods:
     handler: out/stripe-payment-methods_get.handler
     events:
@@ -63,6 +77,13 @@ functions:
           path: stripe-payment-succeeded
           method: post
           cors: true
+  stripe-products-get:
+    handler: out/stripe-products_get.handler
+    events:
+      - http:
+          path: stripe-products
+          method: get
+          cors: true
   stripe-session-post:
     handler: out/stripe-session_post.handler
     events:
@@ -76,6 +97,20 @@ functions:
       - http:
           path: stripe-setup-intent
           method: post
+          cors: true
+  stripe-subscribe-post:
+    handler: out/stripe-subscribe_post.handler
+    events:
+      - http:
+          path: stripe-subscribe
+          method: post
+          cors: true
+  stripe-subscriptions-get:
+    handler: out/stripe-subscriptions_get.handler
+    events:
+      - http:
+          path: stripe-subscriptions
+          method: get
           cors: true
   twitter-login-post:
     handler: out/twitter-login_post.handler
