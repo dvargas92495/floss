@@ -6,7 +6,15 @@ export const handler = async (event: APIGatewayEvent) => {
   return stripe.products
     .list()
     .then((products) =>
-      products.data.filter((p) => p.metadata["Project"] === project)
+      Promise.all(
+        products.data
+          .filter((p) => p.metadata["Project"] === project)
+          .map((p) =>
+            stripe.prices
+              .list({ product: p.id })
+              .then((r) => ({ ...p, prices: r.data }))
+          )
+      )
     )
     .then((products) => ({
       statusCode: 200,
