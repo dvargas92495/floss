@@ -75,6 +75,7 @@ module "aws-serverless-backend" {
     paths = [
         "auth-user-metadata/get",
         "auth-user-metadata/put",
+        "aws-check-domain/get",
         "contract/get",
         "contract/post",
         "contract/put",
