@@ -319,6 +319,25 @@ resource "aws_route53_record" "mail_from_txt_record" {
   records = ["v=spf1 include:amazonses.com ~all"]
 }
 
+data "aws_iam_policy_document" "lambda_extra_policy" {
+  statement {
+    actions = [
+      "route53domains:CheckDomainAvailability"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "lambda_extra_policy" {
+  name = "floss-lambda-extra"
+  policy = data.aws_iam_policy_document.lambda_extra_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_extra_attach" {
+  role       = "floss-lambda-execution"
+  policy_arn = aws_iam_policy.lambda_extra_policy.arn
+}
+
 provider "github" {
     owner = "dvargas92495"
     token = var.github_token
