@@ -69,7 +69,7 @@ module "aws-static-site" {
 
 module "aws-serverless-backend" {
     source  = "dvargas92495/serverless-backend/aws"
-    version = "1.3.8"
+    version = "1.3.9"
 
     api_name = "floss"
     paths = [
