@@ -8,7 +8,7 @@ const route53domains = new AWS.Route53Domains({
 export const handler = async (event: APIGatewayProxyEvent) =>
   route53domains
     .checkDomainAvailability({
-      DomainName: JSON.parse(event.body || "{}").domain,
+      DomainName: event.queryStringParameters?.domain || "floss.davidvargas.me",
     })
     .promise()
     .then(({ Availability }) => ({

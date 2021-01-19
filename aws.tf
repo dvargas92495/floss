@@ -94,7 +94,7 @@ module "aws-serverless-backend" {
         "stripe-payment-methods/get",
         "stripe-payment-succeeded/post",
         "stripe-subscribe/post",
-        "stripe-subscription/get",
+        "stripe-subscriptions/get",
         "stripe-user/put",
         "twitter-auth/post",
         "twitter-auto/post",
