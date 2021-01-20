@@ -7,6 +7,13 @@ custom:
   serverless-offline:
     httpPort: 3001
 functions:
+  aws-check-domain-get:
+    handler: out/aws-check-domain_get.handler
+    events:
+      - http:
+          path: aws-check-domain
+          method: get
+          cors: true
   contract-get:
     handler: out/contract_get.handler
     events:

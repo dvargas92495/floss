@@ -14,14 +14,21 @@ export const handler = async (event: APIGatewayEvent) => {
   const subscriptions = await stripe.subscriptions.list({ customer });
   const products = await Promise.all(
     subscriptions.data
-      .flatMap((s) => s.items.data.map((i) => i.price.product as string))
-      .map((productId) => stripe.products.retrieve(productId))
+      .flatMap((s) =>
+        s.items.data.map((i) => ({
+          productId: i.price.product as string,
+          id: i.id,
+        }))
+      )
+      .map(({ productId, id }) =>
+        stripe.products.retrieve(productId).then((p) => ({ name: p.name, id }))
+      )
   );
 
   return {
     statusCode: 200,
     body: JSON.stringify({
-      subscribed: products.some((p) => p.name === product),
+      subscriptionId: products.find((p) => p.name === product)?.id,
     }),
     headers,
   };
