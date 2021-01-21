@@ -322,7 +322,8 @@ resource "aws_route53_record" "mail_from_txt_record" {
 data "aws_iam_policy_document" "lambda_extra_policy" {
   statement {
     actions = [
-      "route53domains:CheckDomainAvailability"
+      "route53domains:CheckDomainAvailability",
+      "route53:ListHostedZones"
     ]
     resources = ["*"]
   }
