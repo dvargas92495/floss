@@ -17,7 +17,7 @@ export const handler = async (event: APIGatewayEvent) => {
       .flatMap((s) =>
         s.items.data.map((i) => ({
           productId: i.price.product as string,
-          id: i.id,
+          id: s.id,
         }))
       )
       .map(({ productId, id }) =>
