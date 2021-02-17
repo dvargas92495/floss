@@ -1,11 +1,18 @@
 terraform {
-    backend "remote" {
-        hostname = "app.terraform.io"
-        organization = "VargasArts"
-        workspaces {
-            prefix = "floss"
-        }
+  backend "remote" {
+    hostname = "app.terraform.io"
+    organization = "VargasArts"
+    workspaces {
+      prefix = "floss"
     }
+  }
+
+  required_providers {
+    github = {
+      source = "integrations/github"
+      version = "4.2.0"
+    }
+  }
 }
 
 variable "secret" {
@@ -91,6 +98,7 @@ module "aws-serverless-backend" {
         "stripe-products/get",
         "stripe-session/post",
         "stripe-setup-intent/post",
+        "stripe-payment-method/delete",
         "stripe-payment-methods/get",
         "stripe-payment-succeeded/post",
         "stripe-subscribe/post",
