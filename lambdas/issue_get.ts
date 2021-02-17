@@ -21,7 +21,7 @@ export const handler = async (event: APIGatewayEvent) => {
       (c.Items || []).map((i) =>
         stripe.customers
           .list({ email: i.createdBy.S })
-          .then((cus) => ({ i, name: cus.data[0].name || "" }))
+          .then((cus) => ({ i, name: cus.data[0]?.name || i.createdBy.S }))
       )
     )
   );

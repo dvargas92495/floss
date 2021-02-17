@@ -1,21 +1,23 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { getStripeCustomer, headers, stripe } from "../utils/lambda";
 import Stripe from "stripe";
+import querystring from "querystring";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
     priceId,
+    successParams,
   }: {
     priceId: string;
+    successParams?: { [key: string]: string };
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const origin = reqHeaders.Origin || reqHeaders.origin;
   const { customer } = await getStripeCustomer(reqHeaders.Authorization);
-  const paymentMethod = stripe.customers
+  const paymentMethod = await stripe.customers
     .retrieve(customer)
-    .then(
-      (c) => (c as Stripe.Customer)?.invoice_settings?.default_payment_method
-    );
+    .then((c) => c as Stripe.Customer)
+    .then((c) => c.invoice_settings?.default_payment_method);
 
   return paymentMethod
     ? stripe.subscriptions
@@ -30,7 +32,7 @@ export const handler = async (event: APIGatewayEvent) => {
         }))
         .catch((e) => ({
           statusCode: 500,
-          body: e.errorMessage || e.message,
+          body: `Failed to create subscription: ${e.errorMessage || e.message}`,
           headers,
         }))
     : stripe.checkout.sessions
@@ -44,7 +46,11 @@ export const handler = async (event: APIGatewayEvent) => {
             },
           ],
           mode: "subscription",
-          success_url: `${origin}/user?success=true`,
+          success_url: `${origin}/user?${
+            successParams
+              ? querystring.stringify(successParams)
+              : "success=true"
+          }`,
           cancel_url: `${origin}/user?cancel=true`,
         })
         .then((session) => ({
@@ -54,7 +60,7 @@ export const handler = async (event: APIGatewayEvent) => {
         }))
         .catch((e) => ({
           statusCode: 500,
-          body: e.errorMessage || e.message,
+          body: `Failed to create session ${e.errorMessage || e.message}`,
           headers,
         }));
 };

@@ -234,7 +234,7 @@ export const getEmailFromHeaders = (Authorization: string) => {
   if (Authorization.startsWith("Bearer ")) {
     return auth0UserClient
       .getProfile(Authorization.substring("Bearer ".length))
-      .then((u) => u.email);
+      .then((u) => u.email as string);
   } else if (Authorization.startsWith("token ")) {
     return axios
       .get(`https://api.github.com/user/emails`, {
@@ -251,51 +251,33 @@ export const getEmailFromHeaders = (Authorization: string) => {
       Buffer.from(Authorization.substring("Basic ".length), "base64").toString()
     );
   } else {
-    return Authorization;
+    return Promise.resolve(Authorization);
   }
 };
 
 export const getStripeCustomer = async (Authorization: string) => {
-  if (Authorization.startsWith("Bearer ")) {
-    const user = await auth0UserClient.getProfile(
-      Authorization.substring("Bearer ".length)
-    );
-    const { app_metadata } = await auth0Client.getUser({ id: user.sub });
-    return {
-      email: user.email,
-      customer: app_metadata?.stripe,
-    };
-  }
   const email = await getEmailFromHeaders(Authorization);
-  const flossUser = await getFlossUserByEmail(email);
-  if (flossUser.Count === 0 || !flossUser.Items) {
-    const customers = await stripe.customers.list({ email });
-    if (customers.data.length > 1) {
-      sendMeEmail(
-        "Floss - getStripeCustomer - Warning",
-        `Multiple customers with the email address ${email}`
-      );
-    }
-    if (customers.data.length === 0) {
-      const customer = (
-        await stripe.customers.create({
-          email,
-        })
-      ).id;
-      return {
-        customer,
+  const customers = await stripe.customers.list({ email });
+  if (customers.data.length > 1) {
+    sendMeEmail(
+      "Floss - getStripeCustomer - Warning",
+      `Multiple customers with the email address ${email}`
+    );
+  }
+  if (customers.data.length === 0) {
+    const customer = await stripe.customers
+      .create({
         email,
-      };
-    } else {
-      return {
-        customer: customers.data[0].id,
-        email,
-      };
-    }
+      })
+      .then((c) => c.id);
+    return {
+      customer,
+      email,
+    };
   } else {
     return {
+      customer: customers.data[0].id,
       email,
-      customer: flossUser.Items[0].client.S || "",
     };
   }
 };

@@ -1,15 +1,15 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
   dynamo,
-  getAuth0UserFromEvent,
   getAxiosByGithubLink,
+  getEmailFromHeaders,
   headers,
   parsePriority,
 } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) =>
-  getAuth0UserFromEvent(event)
-    .then((user) =>
+  getEmailFromHeaders(event.headers.Authorization)
+    .then((email) =>
       dynamo
         .query({
           TableName: "FlossContracts",
@@ -17,7 +17,7 @@ export const handler = async (event: APIGatewayEvent) =>
           IndexName: "createdBy-lifecycle-index",
           ExpressionAttributeValues: {
             ":c": {
-              S: user.email,
+              S: email,
             },
             ":s": {
               S: "active",

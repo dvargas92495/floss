@@ -21,6 +21,13 @@ functions:
           path: contract
           method: get
           cors: true
+  contract-by-email-get:
+    handler: out/contract-by-email_get.handler
+    events:
+      - http:
+          path: contract-by-email
+          method: get
+          cors: true
   contract-post:
     handler: out/contract_post.handler
     events:
@@ -69,6 +76,13 @@ functions:
       - http:
           path: stripe-is-subscribed
           method: get
+          cors: true
+  stripe-payment-method-delete:
+    handler: out/stripe-payment-method_delete.handler
+    events:
+      - http:
+          path: stripe-payment-method
+          method: delete
           cors: true
   stripe-payment-methods:
     handler: out/stripe-payment-methods_get.handler
