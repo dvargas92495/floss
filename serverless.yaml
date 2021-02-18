@@ -70,6 +70,13 @@ functions:
           path: stripe-cancel
           method: post
           cors: true
+  stripe-local-post:
+    handler: out/stripe-local_post.handler
+    events:
+      - http:
+          path: stripe-local
+          method: post
+          cors: true
   stripe-is-subscribed:
     handler: out/stripe-is-subscribed_get.handler
     events:
@@ -90,6 +97,13 @@ functions:
       - http:
           path: stripe-payment-methods
           method: get
+          cors: true
+  stripe-payment-attached:
+    handler: out/stripe-payment-attached_post.handler
+    events:
+      - http:
+          path: stripe-payment-attached
+          method: post
           cors: true
   stripe-payment-succeeded:
     handler: out/stripe-payment-succeeded_post.handler

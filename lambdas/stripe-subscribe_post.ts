@@ -7,9 +7,11 @@ export const handler = async (event: APIGatewayEvent) => {
   const {
     priceId,
     successParams,
+    metadata,
   }: {
     priceId: string;
     successParams?: { [key: string]: string };
+    metadata: Stripe.MetadataParam;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const origin = reqHeaders.Origin || reqHeaders.origin;
@@ -52,6 +54,7 @@ export const handler = async (event: APIGatewayEvent) => {
               : "success=true"
           }`,
           cancel_url: `${origin}/user?cancel=true`,
+          metadata,
         })
         .then((session) => ({
           statusCode: 200,

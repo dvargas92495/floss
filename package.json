@@ -5,12 +5,13 @@
     "dev": "next",
     "prebuild": "next build",
     "build": "next export",
-    "build:lambda": "webpack --config webpack.lambda.config.js",
+    "build:lambda": "webpack --config webpack.lambda.config.js --mode production",
     "precron": "npm run build:lambda",
     "cron": "node -e \"require('./out/github-issue-query.js').handler()\"",
-    "prelocal": "npm run build:lambda",
+    "prelocal": "webpack --config webpack.lambda.config.js --mode development",
     "local": "serverless offline",
     "start": "next start",
+    "stripe": "stripe listen --forward-to http://localhost:3001/dev/stripe-local --events checkout.session.completed,payment_method.attached",
     "type-check": "tsc"
   },
   "dependencies": {
