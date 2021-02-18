@@ -110,6 +110,7 @@ module "aws-serverless-backend" {
         "twitter-auto/post",
         "twitter-login/post"
     ]
+    
     tags = {
         Application = "Floss"
     }
