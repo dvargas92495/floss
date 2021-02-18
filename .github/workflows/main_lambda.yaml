@@ -1,12 +1,12 @@
 name: Deploy Lambdas to Production
 on:
   push:
-    branches: master
+    branches: main
     paths:
       - "lambdas/**"
       - "utils/lambda.ts"
       - "webpack.lambda.config.js"
-      - ".github/workflows/master_lambda.yaml"
+      - ".github/workflows/main_lambda.yaml"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.LAMBDA_AWS_ACCESS_KEY_ID }}

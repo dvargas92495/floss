@@ -24,13 +24,11 @@ export const handler = async (event: APIGatewayEvent) => {
     statusCode: 200,
     body: JSON.stringify({
       paymentMethods,
-      defaultPaymentMethod: defaultPaymentMethod
-        ? {
-            id: defaultPaymentMethod.id,
-            brand: defaultPaymentMethod.card?.brand,
-            last4: defaultPaymentMethod.card?.last4,
-          }
-        : {},
+      defaultPaymentMethod: defaultPaymentMethod && {
+        id: defaultPaymentMethod.id,
+        brand: defaultPaymentMethod.card?.brand,
+        last4: defaultPaymentMethod.card?.last4,
+      },
     }),
     headers,
   };

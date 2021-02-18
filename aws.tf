@@ -76,9 +76,10 @@ module "aws-static-site" {
 
 module "aws-serverless-backend" {
     source  = "dvargas92495/serverless-backend/aws"
-    version = "1.3.9"
+    version = "1.4.0"
 
     api_name = "floss"
+    domain = "davidvargas.me"
     paths = [
         "auth-user-metadata/get",
         "auth-user-metadata/put",
@@ -98,6 +99,7 @@ module "aws-serverless-backend" {
         "stripe-products/get",
         "stripe-session/post",
         "stripe-setup-intent/post",
+        "stripe-payment-attached/post",
         "stripe-payment-method/delete",
         "stripe-payment-methods/get",
         "stripe-payment-succeeded/post",
