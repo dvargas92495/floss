@@ -98,19 +98,7 @@ export const handler = async (event: APIGatewayEvent) => {
           customer,
           payment_method_types: ["card"],
           mode: "setup",
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name,
-                  description: link,
-                },
-                unit_amount: reward * 100,
-              },
-              quantity: 1,
-            },
-          ],
+          line_items: [],
           success_url: `${origin}/checkout?success=true`,
           cancel_url: `${origin}/checkout?cancel=true`,
         })
