@@ -7,7 +7,7 @@ export const handler = async (event: APIGatewayEvent) => {
   }: {
     subscriptionId: string;
   } = JSON.parse(event.body || "{}");
-  const { customer } = await getStripeCustomer(event.headers.Authorization);
+  const customer = await getStripeCustomer(event.headers.Authorization);
   const subscriptions = await stripe.subscriptions.list({ customer });
   if (!subscriptions.data.some(({ id }) => id === subscriptionId)) {
     return {

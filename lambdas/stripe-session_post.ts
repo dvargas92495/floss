@@ -24,16 +24,14 @@ export const handler = async (event: APIGatewayEvent) => {
     paymentMethod: string;
     mode?: Stripe.Checkout.SessionCreateParams.Mode;
   } = JSON.parse(event.body || "{}");
-  const reqHeaders = event.headers;
   const response = await validateGithubLink(link);
   if (response.body) {
     return response;
   }
 
+  const reqHeaders = event.headers;
   const origin = reqHeaders.Origin || reqHeaders.origin;
-  const { customer, email: createdBy } = await getStripeCustomer(
-    reqHeaders.Authorization
-  );
+  const customer = await getStripeCustomer(reqHeaders.Authorization);
   const uuid = v4();
   const putItemProps = (sessionId: string) => ({
     Item: {
@@ -52,9 +50,6 @@ export const handler = async (event: APIGatewayEvent) => {
       lifecycle: {
         S: paymentMethod ? "active" : "pending",
       },
-      createdBy: {
-        S: createdBy,
-      },
     },
     TableName: "FlossContracts",
   });
@@ -64,6 +59,7 @@ export const handler = async (event: APIGatewayEvent) => {
           customer,
           amount: reward * 100,
           currency: "usd",
+          payment_method: paymentMethod,
         })
         .then((paymentIntent) =>
           dynamo.putItem(putItemProps(paymentIntent.id)).promise()

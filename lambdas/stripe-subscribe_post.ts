@@ -15,7 +15,15 @@ export const handler = async (event: APIGatewayEvent) => {
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const origin = reqHeaders.Origin || reqHeaders.origin;
-  const { customer } = await getStripeCustomer(reqHeaders.Authorization);
+  const customer = await getStripeCustomer(reqHeaders.Authorization);
+  if (!customer) {
+    return {
+      statusCode: 401,
+      body: "No Stripe Customer Found",
+      headers,
+    }
+  }
+  
   const paymentMethod = await stripe.customers
     .retrieve(customer)
     .then((c) => c as Stripe.Customer)

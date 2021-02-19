@@ -1,5 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
 import {
+  activateContract,
   dynamo,
   getStripeCustomer,
   headers,
@@ -8,26 +9,28 @@ import {
   validateGithubLink,
 } from "../utils/lambda";
 import { v4 } from "uuid";
+import { Stripe } from "stripe";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
     link,
     reward,
     dueDate,
-    paymentMethod,
+    name = "Github Issue",
   }: {
     link: string;
     reward: number;
     dueDate: string;
-    paymentMethod: string;
+    name?: string;
   } = JSON.parse(event.body || "{}");
-  const reqHeaders = event.headers;
   const response = await validateGithubLink(link);
   if (response.body) {
     return response;
   }
 
-  const { customer, email: createdBy} = await getStripeCustomer(reqHeaders.Authorization);
+  const reqHeaders = event.headers;
+  const origin = reqHeaders.Origin || reqHeaders.origin;
+  const customer = await getStripeCustomer(reqHeaders.Authorization);
   const uuid = v4();
   const putItemProps = (intentId: string) => ({
     Item: {
@@ -41,51 +44,93 @@ export const handler = async (event: APIGatewayEvent) => {
         S: link,
       },
       lifecycle: {
-        S: paymentMethod ? "active" : "pending",
+        S: "pending",
       },
       priority: {
         S: toPriority({ reward, dueDate }),
       },
-      createdBy: {
-        S: createdBy,
-      },
     },
     TableName: "FlossContracts",
   });
-  return paymentMethod
-    ? await stripe.setupIntents
+  const payment_method =
+    customer &&
+    (await stripe.customers
+      .retrieve(customer)
+      .then((c) => c as Stripe.Customer)
+      .then((c) =>
+        c.invoice_settings.default_payment_method
+          ? (c.invoice_settings.default_payment_method as string)
+          : undefined
+      ));
+
+  return payment_method
+    ? stripe.setupIntents
         .create({
           customer,
-          payment_method: paymentMethod,
+          payment_method,
         })
         .then((intent) =>
           dynamo
             .putItem(putItemProps(intent.id))
             .promise()
+            .then(() =>
+              activateContract({
+                id: intent.id,
+                payment_method,
+                customer: customer as string,
+              })
+            )
+        )
+        .then(() => ({
+          statusCode: 200,
+          body: JSON.stringify({
+            active: true,
+          }),
+          headers,
+        }))
+        .catch((e) => ({
+          statusCode: 500,
+          body: e.errorMessage || e.message,
+          headers,
+        }))
+    : stripe.checkout.sessions
+        .create({
+          customer,
+          payment_method_types: ["card"],
+          mode: "setup",
+          line_items: [
+            {
+              price_data: {
+                currency: "usd",
+                product_data: {
+                  name,
+                  description: link,
+                },
+                unit_amount: reward * 100,
+              },
+              quantity: 1,
+            },
+          ],
+          success_url: `${origin}/checkout?success=true`,
+          cancel_url: `${origin}/checkout?cancel=true`,
+        })
+        .then((session) =>
+          dynamo
+            .putItem(
+              putItemProps(
+                (session.payment_intent || session.setup_intent) as string
+              )
+            )
+            .promise()
             .then(() => ({
               statusCode: 200,
-              body: JSON.stringify({
-                active: true,
-              }),
+              body: JSON.stringify({ id: session.id, active: false }),
               headers,
             }))
         )
-    : await stripe.setupIntents
-        .create({
-          customer,
-        })
-        .then((intent) =>
-          dynamo
-            .putItem(putItemProps(intent.id))
-            .promise()
-            .then(() => ({
-              statusCode: 200,
-              body: JSON.stringify({
-                client_secret: intent.client_secret,
-                id: intent.id,
-                active: false,
-              }),
-              headers,
-            }))
-        );
+        .catch((e) => ({
+          statusCode: 500,
+          body: e.errorMessage || e.message,
+          headers,
+        }));
 };

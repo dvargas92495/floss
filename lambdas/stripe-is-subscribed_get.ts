@@ -10,7 +10,7 @@ export const handler = async (event: APIGatewayEvent) => {
       headers,
     };
   }
-  const { customer } = await getStripeCustomer(event.headers.Authorization);
+  const customer = await getStripeCustomer(event.headers.Authorization);
   const subscriptions = await stripe.subscriptions.list({ customer });
   const products = await Promise.all(
     subscriptions.data

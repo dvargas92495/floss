@@ -3,7 +3,15 @@ import Stripe from "stripe";
 import { getStripeCustomer, headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const { customer } = await getStripeCustomer(event.headers.Authorization);
+  const customer = await getStripeCustomer(event.headers.Authorization);
+  if (!customer) {
+    return {
+      statusCode: 401,
+      body: "No Stripe Customer Found",
+      headers,
+    }
+  }
+  
   const defaultPaymentMethod = await stripe.customers
     .retrieve(customer, { expand: ["invoice_settings.default_payment_method"] })
     .then(

@@ -33,6 +33,7 @@ export const handler = async (event: APIGatewayEvent) => {
       body: issue.body,
       state: issue.state,
       link: issue.html_url,
+      label: (issue.labels || []).map(l => l.name).join(','),
       contracts: contracts.map(({ i, name }) => ({
         uuid: i.uuid?.S,
         lifecycle: i.lifecycle?.S,

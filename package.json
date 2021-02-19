@@ -11,7 +11,8 @@
     "prelocal": "webpack --config webpack.lambda.config.js --mode development",
     "local": "serverless offline",
     "start": "next start",
-    "stripe": "stripe listen --forward-to http://localhost:3001/dev/stripe-local --events checkout.session.completed,payment_method.attached",
+    "stripe": "stripe listen --forward-to http://localhost:3001/dev/stripe-local --latest",
+    "stripe:debug": "npm run stripe -- --log-level debug",
     "type-check": "tsc"
   },
   "dependencies": {

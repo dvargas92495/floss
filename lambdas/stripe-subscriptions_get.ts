@@ -2,7 +2,7 @@ import { APIGatewayEvent } from "aws-lambda";
 import { headers, stripe, getStripeCustomer } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const { customer } = await getStripeCustomer(event.headers.Authorization);
+  const customer = await getStripeCustomer(event.headers.Authorization);
   return stripe.subscriptions
     .list({ customer })
     .then((subs) => ({

@@ -169,8 +169,42 @@ export const upsertUser = async (
   }
 };
 
-export const activateContractByStripeId = (id: string) =>
-  dynamo
+export const activateContract = async ({
+  id,
+  payment_method,
+  customer,
+}: {
+  id: string;
+  payment_method: string | Stripe.PaymentMethod | null;
+  customer: string | Stripe.Customer | Stripe.DeletedCustomer | null;
+}) => {
+  const email = customer
+    ? await stripe.customers
+        .retrieve(customer as string)
+        .then((c) => c as Stripe.Customer)
+        .then((c) => c.email as string)
+    : await stripe.paymentMethods
+        .retrieve(payment_method as string)
+        .then((pm) =>
+          stripe.customers
+            .list({
+              email: pm.billing_details.email as string,
+            })
+            .then((cs) =>
+              cs.data.some((c) => c.name === pm.billing_details.name)
+                ? (cs.data.find(
+                    (c) => c.name === pm.billing_details.name
+                  ) as Stripe.Customer)
+                : stripe.customers.create({
+                    name: pm.billing_details.name as string,
+                    email: pm.billing_details.email as string,
+                    payment_method: pm.id,
+                  })
+            )
+        )
+        .then((c) => c.email as string);
+
+  return dynamo
     .query({
       TableName: "FlossContracts",
       KeyConditionExpression: "stripe = :s",
@@ -191,6 +225,9 @@ export const activateContractByStripeId = (id: string) =>
                 lifecycle: {
                   S: "active",
                 },
+                createdBy: {
+                  S: email,
+                },
               },
               TableName: "FlossContracts",
               ReturnValues: "ALL_OLD",
@@ -198,8 +235,8 @@ export const activateContractByStripeId = (id: string) =>
             .promise()
             .then((r) =>
               sendMeEmail(
-                `New Floss Contract from ${r.Attributes?.createdBy.S} is Active`,
-                `Check out the contract at https://floss.davidvargas.me/contract?uuid=${r.Attributes?.uuid.S}`
+                `New Floss Contract from ${email} is Active`,
+                `Check out the contract at https://floss.davidvargas.me/contract?uuid=${r.Attributes?.uuid?.S}`
               )
             )
             .then(() => ({
@@ -220,6 +257,7 @@ export const activateContractByStripeId = (id: string) =>
       body: e.message,
       headers,
     }));
+};
 
 export const getUser = async (Authorization: string) =>
   (
@@ -255,7 +293,10 @@ export const getEmailFromHeaders = (Authorization: string) => {
   }
 };
 
-export const getStripeCustomer = async (Authorization: string) => {
+export const getStripeCustomer = async (Authorization?: string) => {
+  if (!Authorization) {
+    return undefined;
+  }
   const email = await getEmailFromHeaders(Authorization);
   const customers = await stripe.customers.list({ email });
   if (customers.data.length > 1) {
@@ -265,20 +306,9 @@ export const getStripeCustomer = async (Authorization: string) => {
     );
   }
   if (customers.data.length === 0) {
-    const customer = await stripe.customers
-      .create({
-        email,
-      })
-      .then((c) => c.id);
-    return {
-      customer,
-      email,
-    };
+    return undefined;
   } else {
-    return {
-      customer: customers.data[0].id,
-      email,
-    };
+    return customers.data[0].id;
   }
 };
 

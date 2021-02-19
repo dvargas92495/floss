@@ -1,29 +1,37 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
-import { activateContractByStripeId, headers } from "../utils/lambda";
+import Stripe from "stripe";
+import { activateContract, headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
     data: {
-      object: { payment_intent, setup_intent, mode, metadata },
+      object: { payment_intent, mode, metadata, customer },
     },
-  } = JSON.parse(event.body || "{}");
-  const contractStripeId = payment_intent || setup_intent;
-  if (contractStripeId) {
-    return activateContractByStripeId(contractStripeId);
-  } else if (mode === "subscription") {
-    const { url, ...data } = metadata;
-    return axios
-      .post(url, data)
-      .then((r) => ({
+  }: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
+    event.body || "{}"
+  );
+  switch (mode) {
+    case "setup":
+      return {
+        statusCode: 200,
+        body: "Webhook moved",
+        headers,
+      };
+    case "payment":
+      return activateContract({
+        id: payment_intent as string,
+        payment_method: await stripe.paymentIntents
+          .retrieve(payment_intent as string)
+          .then((s) => s.payment_method),
+        customer,
+      });
+    case "subscription":
+      const { url, ...data } = metadata || {};
+      return axios.post(url, data).then((r) => ({
         statusCode: r.status,
         body: JSON.stringify(r.data),
         headers: r.headers,
       }));
   }
-  return {
-    statusCode: 204,
-    body: JSON.stringify({}),
-    headers,
-  };
 };

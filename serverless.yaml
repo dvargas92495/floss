@@ -126,6 +126,13 @@ functions:
           path: stripe-session
           method: post
           cors: true
+  stripe-setup-succeeded:
+    handler: out/stripe-setup-succeeded_post.handler
+    events:
+      - http:
+          path: stripe-setup-succeeded
+          method: post
+          cors: true
   stripe-setup-intent-post:
     handler: out/stripe-setup-intent_post.handler
     events:
