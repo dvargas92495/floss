@@ -16,12 +16,10 @@ export const handler = async (event: APIGatewayEvent) => {
     link,
     reward,
     dueDate,
-    name = "Github Issue",
   }: {
     link: string;
     reward: number;
     dueDate: string;
-    name?: string;
   } = JSON.parse(event.body || "{}");
   const response = await validateGithubLink(link);
   if (response.body) {
