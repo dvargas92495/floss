@@ -76,7 +76,7 @@ module "aws-static-site" {
 
 module "aws-serverless-backend" {
     source  = "dvargas92495/serverless-backend/aws"
-    version = "1.4.0"
+    version = "1.4.1"
 
     api_name = "floss"
     domain = "davidvargas.me"
