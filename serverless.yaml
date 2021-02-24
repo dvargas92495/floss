@@ -77,6 +77,13 @@ functions:
           path: stripe-local
           method: post
           cors: true
+  stripe-invoice-paid-post:
+    handler: out/stripe-invoice-paid_post.handler
+    events:
+      - http:
+          path: stripe-invoice-paid
+          method: post
+          cors: true
   stripe-is-subscribed:
     handler: out/stripe-is-subscribed_get.handler
     events:

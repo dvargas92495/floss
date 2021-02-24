@@ -7,6 +7,7 @@ const MAPPING = {
   "checkout.session.completed": "stripe-payment-succeeded",
   "payment_method.attached": "stripe-payment-attached",
   "setup_intent.succeeded": "stripe-setup-succeeded",
+  "invoice.paid": "stripe-invoice-paid",
 } as {[type: string]: string};
 
 export const handler = async (event: APIGatewayEvent) => {

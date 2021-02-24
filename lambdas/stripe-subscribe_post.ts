@@ -6,12 +6,14 @@ import querystring from "querystring";
 export const handler = async (event: APIGatewayEvent) => {
   const {
     priceId,
+    quantity = 1,
     successParams,
     metadata,
   }: {
     priceId: string;
     successParams?: { [key: string]: string };
     metadata: Stripe.MetadataParam;
+    quantity: number;
   } = JSON.parse(event.body || "{}");
   const reqHeaders = event.headers;
   const origin = reqHeaders.Origin || reqHeaders.origin;
@@ -21,9 +23,9 @@ export const handler = async (event: APIGatewayEvent) => {
       statusCode: 401,
       body: "No Stripe Customer Found",
       headers,
-    }
+    };
   }
-  
+
   const paymentMethod = await stripe.customers
     .retrieve(customer)
     .then((c) => c as Stripe.Customer)
@@ -33,11 +35,11 @@ export const handler = async (event: APIGatewayEvent) => {
     ? stripe.subscriptions
         .create({
           customer,
-          items: [{ price: priceId }],
+          items: [{ price: priceId, quantity }],
         })
-        .then(() => ({
+        .then((s) => ({
           statusCode: 200,
-          body: JSON.stringify({ active: true }),
+          body: JSON.stringify({ active: true, id: s.id }),
           headers,
         }))
         .catch((e) => ({
@@ -52,7 +54,7 @@ export const handler = async (event: APIGatewayEvent) => {
           line_items: [
             {
               price: priceId,
-              quantity: 1,
+              quantity,
             },
           ],
           mode: "subscription",

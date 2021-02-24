@@ -18,11 +18,13 @@ export const handler = async (event: APIGatewayEvent) => {
   const link = `https://github.com/${event.queryStringParameters.link}`;
   const contracts = await getContractsByLink(link).then((c) =>
     Promise.all(
-      (c.Items || []).map((i) =>
-        stripe.customers
-          .list({ email: i.createdBy.S })
-          .then((cus) => ({ i, name: cus.data[0]?.name || i.createdBy.S }))
-      )
+      (c.Items || [])
+        .filter((i) => !!i.createdBy)
+        .map((i) =>
+          stripe.customers
+            .list({ email: i.createdBy.S })
+            .then((cus) => ({ i, name: cus.data[0]?.name || i.createdBy.S }))
+        )
     )
   );
   const issue = await getAxiosByGithubLink(link);
@@ -33,7 +35,7 @@ export const handler = async (event: APIGatewayEvent) => {
       body: issue.body,
       state: issue.state,
       link: issue.html_url,
-      label: (issue.labels || []).map(l => l.name).join(','),
+      label: (issue.labels || []).map((l) => l.name).join(","),
       contracts: contracts.map(({ i, name }) => ({
         uuid: i.uuid?.S,
         lifecycle: i.lifecycle?.S,
