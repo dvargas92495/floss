@@ -69,74 +69,63 @@ export const handler = () =>
           );
           const stripeSetups = contractsToCharge.map((c) =>
             stripe.setupIntents
-              .retrieve(c.Attributes?.stripe.S || "")
-              .then((si) =>
-                stripe.customers
-                  .retrieve(si.customer as string)
-                  .then(async (cus) => {
-                    if (cus.deleted) {
-                      return {
-                        customer: cus.id,
-                        balanceAmount: 0,
-                        paymentAmount: 0,
-                      };
-                    }
-                    const customer = cus as Stripe.Customer;
-                    const initialAmount =
-                      (parsePriority(c.Attributes).reward || 0) * 100;
-                    const balanceAmount =
-                      customer.balance < 0
-                        ? await stripe.customers
-                            .createBalanceTransaction(customer.id, {
-                              amount: Math.min(
-                                -customer.balance,
-                                initialAmount
-                              ),
-                              currency: "usd",
-                              description: `Funding for ${c.Attributes?.link?.S}`,
-                            })
-                            .then((transaction) => transaction.amount / 100)
-                        : 0;
-                    try {
-                      const amount = initialAmount + customer.balance;
-                      const paymentAmount =
-                        amount > 0
-                          ? await stripe.paymentIntents
-                              .create({
-                                amount,
-                                currency: "usd",
-                                customer: si.customer as string,
-                                payment_method: si.payment_method as string,
-                                off_session: true,
-                                confirm: true,
-                              })
-                              .then((pi) => pi.amount / 100)
-                          : 0;
-                      return {
-                        customer: customer.id,
-                        balanceAmount,
-                        paymentAmount,
-                      };
-                    } catch (e) {
-                      console.error(e);
-                      const stripeError = e as Stripe.StripeError;
-                      if (stripeError.type === "StripeCardError") {
-                        return {
-                          customer: customer.id,
-                          balanceAmount,
-                          paymentAmount: 0,
-                          error: stripeError.message,
-                        };
-                      }
-                      return {
-                        customer: customer.id,
-                        balanceAmount,
-                        paymentAmount: 0,
-                        error: "Unknown Error",
-                      };
-                    }
-                  })
-              )
+              .retrieve(c.Attributes?.stripe.S || "", {
+                expand: ["payment_method.customer"],
+              })
+              .then(async (si) => {
+                const customer = (si.payment_method as Stripe.PaymentMethod)
+                  .customer as Stripe.Customer;
+                const initialAmount =
+                  (parsePriority(c.Attributes).reward || 0) * 100;
+                const balanceAmount =
+                  customer.balance < 0
+                    ? await stripe.customers
+                        .createBalanceTransaction(customer.id, {
+                          amount: Math.min(-customer.balance, initialAmount),
+                          currency: "usd",
+                          description: `Funding for ${c.Attributes?.link?.S}`,
+                        })
+                        .then((transaction) => transaction.amount / 100)
+                    : 0;
+                try {
+                  const amount = initialAmount + customer.balance;
+                  const paymentAmount =
+                    amount > 0
+                      ? await stripe.paymentIntents
+                          .create({
+                            amount,
+                            currency: "usd",
+                            customer: si.customer as string,
+                            payment_method: si.payment_method as string,
+                            off_session: true,
+                            confirm: true,
+                          })
+                          .then((pi) => pi.amount / 100)
+                      : 0;
+                  return {
+                    customer: customer.id,
+                    balanceAmount,
+                    paymentAmount,
+                  };
+                } catch (e) {
+                  console.error(e);
+                  const stripeError = e as Stripe.StripeError;
+                  if (stripeError.type === "StripeCardError") {
+                    return {
+                      customer: customer.id,
+                      balanceAmount,
+                      paymentAmount: 0,
+                      error: stripeError.message,
+                    };
+                  }
+                  return {
+                    customer: customer.id,
+                    balanceAmount,
+                    paymentAmount: 0,
+                    error: "Unknown Error",
+                  };
+                }
+              })
           );
           return Promise.all(stripeSetups);
         });

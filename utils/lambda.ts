@@ -192,9 +192,15 @@ export const activateContract = async ({
             })
             .then((cs) =>
               cs.data.some((c) => c.name === pm.billing_details.name)
-                ? (cs.data.find(
-                    (c) => c.name === pm.billing_details.name
-                  ) as Stripe.Customer)
+                ? Promise.resolve(
+                    cs.data.find(
+                      (c) => c.name === pm.billing_details.name
+                    ) as Stripe.Customer
+                  ).then((c) =>
+                    stripe.paymentMethods
+                      .attach(pm.id, { customer: c.id })
+                      .then(() => c)
+                  )
                 : stripe.customers.create({
                     name: pm.billing_details.name as string,
                     email: pm.billing_details.email as string,
