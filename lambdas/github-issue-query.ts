@@ -73,8 +73,8 @@ export const handler = () =>
                 expand: ["payment_method.customer"],
               })
               .then(async (si) => {
-                const customer = (si.payment_method as Stripe.PaymentMethod)
-                  .customer as Stripe.Customer;
+                const paymentMethod = si.payment_method as Stripe.PaymentMethod;
+                const customer = paymentMethod.customer as Stripe.Customer;
                 const initialAmount =
                   (parsePriority(c.Attributes).reward || 0) * 100;
                 const balanceAmount =
@@ -96,7 +96,7 @@ export const handler = () =>
                             amount,
                             currency: "usd",
                             customer: si.customer as string,
-                            payment_method: si.payment_method as string,
+                            payment_method: paymentMethod.id,
                             off_session: true,
                             confirm: true,
                           })
