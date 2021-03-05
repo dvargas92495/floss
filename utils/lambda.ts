@@ -252,11 +252,14 @@ export const activateContract = async ({
               }),
               headers,
             }))
-        : {
-            statusCode: 500,
-            body: `Failed to find one contract with stripe id ${id}`,
+        : sendMeEmail(
+            `Failed to find one contract with stripe id ${id}`,
+            `Verify that this was related to a Subscription. Then figure out a better way to handle this.`
+          ).then(() => ({
+            statusCode: 204,
+            body: JSON.stringify({}),
             headers,
-          }
+          }))
     )
     .catch((e) => ({
       statusCode: 500,
