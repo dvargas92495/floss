@@ -9,12 +9,13 @@ export const handler = async (event: APIGatewayEvent) => {
       Promise.all(
         products.data
           .filter((p) => p.metadata["Project"] === project)
-          .map(({ id, name, description }) =>
+          .map(({ id, name, description, images: [image] }) =>
             stripe.prices.list({ product: id }).then((r) => ({
               id,
               name,
               description,
-              prices: r.data.map((p) => ({ id: p.id })),
+              image,
+              prices: r.data.map((p) => ({ id: p.id, price: p.unit_amount })),
             }))
           )
       )
