@@ -1,23 +1,25 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
 import Stripe from "stripe";
-import { activateContract, headers, stripe } from "../utils/lambda";
+import { activateContract, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
     data: {
-      object: { payment_intent, mode, metadata, customer },
+      object: { payment_intent, mode, metadata, customer, setup_intent },
     },
   }: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
     event.body || "{}"
   );
   switch (mode) {
     case "setup":
-      return {
-        statusCode: 200,
-        body: "Webhook moved",
-        headers,
-      };
+      return activateContract({
+        id: setup_intent as string,
+        payment_method: await stripe.setupIntents
+          .retrieve(setup_intent as string)
+          .then((s) => s.payment_method),
+        customer,
+      });
     case "payment":
       return activateContract({
         id: payment_intent as string,
