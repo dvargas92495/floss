@@ -1,17 +1,16 @@
 import { APIGatewayEvent } from "aws-lambda";
 import { getStripeCustomer, headers, stripe } from "../utils/lambda";
 import Stripe from "stripe";
-import querystring from "querystring";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
     priceId,
     quantity = 1,
-    successParams,
+    successPath = 'user?cancel=true',
     metadata,
   }: {
     priceId: string;
-    successParams?: { [key: string]: string };
+    successPath?: string;
     metadata: Stripe.MetadataParam;
     quantity: number;
   } = JSON.parse(event.body || "{}");
@@ -58,11 +57,7 @@ export const handler = async (event: APIGatewayEvent) => {
             },
           ],
           mode: "subscription",
-          success_url: `${origin}/user?${
-            successParams
-              ? querystring.stringify(successParams)
-              : "success=true"
-          }`,
+          success_url: `${origin}/${successPath}`,
           cancel_url: `${origin}/user?cancel=true`,
           metadata,
         })
