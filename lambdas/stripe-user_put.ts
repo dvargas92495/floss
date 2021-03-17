@@ -1,25 +1,8 @@
 import { APIGatewayEvent } from "aws-lambda";
-import { auth0Client, headers, stripe } from "../utils/lambda";
-
-const resolveName = (name: string) => {
-  switch (name) {
-    case "Username-Password-Authentication":
-      return "auth0";
-    case "google-oauth2":
-      return "google-oauth2";
-    default:
-      return "";
-  }
-};
+import { headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const {
-    user: { id: userId, email },
-    context: {
-      connection: { name },
-    },
-  } = JSON.parse(event.body || "{}");
-  const id = `${resolveName(name)}|${userId}`;
+  const { name, email } = JSON.parse(event.body || "{}");
   const existingCustomers = await stripe.customers.list({
     email,
   });
@@ -27,12 +10,12 @@ export const handler = async (event: APIGatewayEvent) => {
     ? existingCustomers.data[0]
     : await stripe.customers.create({
         email,
+        name,
       });
-  await auth0Client.updateAppMetadata({ id }, { stripe: customer.id });
   return {
     statusCode: 200,
     body: JSON.stringify({
-      success: true,
+      customer: customer.id,
     }),
     headers,
   };

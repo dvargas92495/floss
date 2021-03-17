@@ -161,6 +161,13 @@ functions:
           path: stripe-subscriptions
           method: get
           cors: true
+  stripe-user-put:
+    handler: out/stripe-user_put.handler
+    events:
+      - http:
+          path: stripe-user
+          method: put
+          cors: true
   twitter-login-post:
     handler: out/twitter-login_post.handler
     events:
