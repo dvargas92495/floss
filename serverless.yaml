@@ -63,6 +63,13 @@ functions:
           path: project
           method: get
           cors: true
+  stripe-balance-get:
+    handler: out/stripe-balance_get.handler
+    events:
+      - http:
+          path: stripe-balance
+          method: get
+          cors: true
   stripe-cancel-post:
     handler: out/stripe-cancel_post.handler
     events:
@@ -97,6 +104,13 @@ functions:
       - http:
           path: stripe-payment-method
           method: delete
+          cors: true
+  stripe-payment-method-put:
+    handler: out/stripe-payment-method_put.handler
+    events:
+      - http:
+          path: stripe-payment-method
+          method: put
           cors: true
   stripe-payment-methods:
     handler: out/stripe-payment-methods_get.handler

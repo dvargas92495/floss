@@ -1,7 +1,6 @@
 import { APIGatewayEvent } from "aws-lambda";
-import axios from "axios";
 import Stripe from "stripe";
-import { headers } from "../utils/lambda";
+import { headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
@@ -11,13 +10,25 @@ export const handler = async (event: APIGatewayEvent) => {
   }: { data: { object: Stripe.Invoice } } = JSON.parse(event.body || "{}");
   const callbacks = lines.data
     .filter((lineItem) => !!lineItem.price?.metadata?.callback)
-    .map((lineItem) =>
-      axios.post(lineItem.price?.metadata?.callback as string, {
-        email: customer_email,
-        quantity: lineItem.quantity,
-        token: lineItem.price?.metadata?.token as string,
-      })
-    );
+    .map((lineItem) => {
+      const callback = lineItem.price?.metadata?.callback as string;
+      if (callback === "balance") {
+        return stripe.customers
+          .list({ email: customer_email || "" })
+          .then((cs) => cs.data[0] as Stripe.Customer)
+          .then((c) =>
+            stripe.customers.update(c.id, {
+              metadata: {
+                balance:
+                  parseInt(c.metadata.balance || "0") +
+                  (lineItem.quantity || 0),
+              },
+            })
+          )
+          .then(() => Promise.resolve());
+      }
+      return Promise.resolve();
+    });
   return Promise.all(callbacks).then(() => ({
     headers,
     statusCode: 200,

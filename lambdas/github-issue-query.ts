@@ -77,16 +77,16 @@ export const handler = () =>
                 const customer = paymentMethod.customer as Stripe.Customer;
                 const initialAmount =
                   (parsePriority(c.Attributes).reward || 0) * 100;
-                const balanceAmount =
-                  customer.balance < 0
-                    ? await stripe.customers
-                        .createBalanceTransaction(customer.id, {
-                          amount: Math.min(-customer.balance, initialAmount),
-                          currency: "usd",
-                          description: `Funding for ${c.Attributes?.link?.S}`,
-                        })
-                        .then((transaction) => transaction.amount / 100)
-                    : 0;
+                const customerBalance =
+                  parseInt(customer.metadata.balance || "0") / 100;
+                const balanceAmount = Math.min(customerBalance, initialAmount);
+                if (balanceAmount > 0) {
+                  await stripe.customers.update(customer.id, {
+                    metadata: {
+                      balance: customerBalance - balanceAmount,
+                    },
+                  });
+                }
                 try {
                   const amount = initialAmount + customer.balance;
                   const paymentAmount =
