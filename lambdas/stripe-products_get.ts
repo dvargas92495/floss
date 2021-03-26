@@ -15,7 +15,11 @@ export const handler = async (event: APIGatewayEvent) => {
               name,
               description,
               image,
-              prices: r.data.map((p) => ({ id: p.id, price: p.unit_amount })),
+              prices: r.data.map((p) => ({
+                id: p.id,
+                price: p.unit_amount,
+                isMonthly: p.type === "recurring",
+              })),
             }))
           )
       )

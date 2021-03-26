@@ -1,18 +1,19 @@
 import { APIGatewayEvent } from "aws-lambda";
-import {
-  headers,
-  stripe,
-} from "../utils/lambda";
+import { headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
     value,
     isMonthly,
     name,
+    cancelPath = "checkout?cancel=true",
+    successPath = "checkout?success=true",
   }: {
     name: string;
     value: number;
     isMonthly: boolean;
+    cancelPath: string;
+    successPath: string;
   } = JSON.parse(event.body || "{}");
 
   const reqHeaders = event.headers;
@@ -25,10 +26,26 @@ export const handler = async (event: APIGatewayEvent) => {
       statusCode: 400,
       body: `No product found with name ${name}`,
       headers,
-    }
+    };
   }
 
-  const price = await stripe.prices.list({product}).then((r) => r.data[0]);
+  const price = await stripe.prices
+    .list({ product })
+    .then((r) =>
+      r.data.find(
+        (p) =>
+          (p.type === "recurring" && isMonthly) ||
+          (p.type === "one_time" && !isMonthly)
+      )
+    );
+  if (!price) {
+    return {
+      statusCode: 400,
+      body: `No price found with product ${name} and isMonthly ${isMonthly}`,
+      headers,
+    };
+  }
+
   const multiple = price.transform_quantity?.divide_by || 1;
   return stripe.checkout.sessions
     .create({
@@ -40,8 +57,9 @@ export const handler = async (event: APIGatewayEvent) => {
         },
       ],
       mode: isMonthly ? "subscription" : "payment",
-      success_url: `${origin}/checkout?success=true`,
-      cancel_url: `${origin}/checkout?cancel=true`,
+      success_url: `${origin}/${successPath}`,
+      cancel_url: `${origin}/${cancelPath}`,
+      
     })
     .then((session) => ({
       statusCode: 200,
