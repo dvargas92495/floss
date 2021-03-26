@@ -59,7 +59,6 @@ const CreateGithubContractForm = ({
   const [link, setLink] = useState(defaultLink);
   const [linkError, setLinkError] = useState("");
   const [reward, setReward] = useState(100);
-  const [payNow, setPayNow] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("");
   const [paymentMethodOptions, setPaymentMethodOptions] = useState<
     StripePaymentMethod[]
@@ -101,36 +100,17 @@ const CreateGithubContractForm = ({
         setMessage("Must be signed in to Fund Contract");
         return;
       }
-      if (payNow) {
-        axios
-          .post(`${API_URL}/stripe-session`, body, axiosOpts)
-          .then((r) => {
-            if (r.data.active) {
-              closeAndFetch();
-            } else {
-              stripe.then(
-                (s) =>
-                  s &&
-                  s.redirectToCheckout({
-                    sessionId: r.data.id as string,
-                  })
-              );
-            }
-          })
-          .catch((e) => setMessage(e.response?.data || e.message));
-      } else {
-        axios
-          .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
-          .then((r) => (r.data.active ? closeAndFetch() : setIntent(r.data)))
-          .catch((e) => setMessage(e.response?.data || e.message));
-      }
+      axios
+        .post(`${API_URL}/stripe-setup-intent`, body, axiosOpts)
+        .then((r) => (r.data.active ? closeAndFetch() : setIntent(r.data)))
+        .catch((e) => setMessage(e.response?.data || e.message));
     } else {
       axios
         .post(`${API_URL}/contract`, body)
         .then(closeAndFetch)
         .catch((e) => setMessage(e.response?.data || e.message));
     }
-  }, [closeAndFetch, body, payNow, setMessage, setIntent]);
+  }, [closeAndFetch, body, setMessage, setIntent]);
 
   const linkOnChange = useCallback(
     (e) => {
@@ -200,10 +180,6 @@ const CreateGithubContractForm = ({
     [dueDate, setDueDateError]
   );
 
-  const payNowOnChange = useCallback((e) => setPayNow(e.target.checked), [
-    setPayNow,
-  ]);
-
   const paymentMethodOnChange = useCallback(
     (e) => setPaymentMethod(e.target.value),
     [setPaymentMethod]
@@ -263,23 +239,6 @@ const CreateGithubContractForm = ({
               onBlur={dueDateOnBlur}
               helperText={dueDateError}
               fullWidth
-            />
-          </Grid>
-          <Grid item xs={3}>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={payNow}
-                  onChange={payNowOnChange}
-                  name="payNow"
-                />
-              }
-              label={payNow ? "Pay Now" : "Pay On Close"}
-              labelPlacement={"top"}
-              style={{
-                width: "100%",
-                margin: 0,
-              }}
             />
           </Grid>
           <Grid item xs={9}>
