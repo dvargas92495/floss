@@ -11,6 +11,7 @@ import isAfter from "date-fns/isAfter";
 import parse from "date-fns/parse";
 import { DynamoDB } from "aws-sdk";
 import Stripe from "stripe";
+import { differenceInDays } from "date-fns";
 
 const getDueDate = (i: DynamoDB.AttributeMap) => {
   const dueDateString = parsePriority(i).dueDate;
@@ -131,23 +132,23 @@ export const handler = () =>
         });
 
         const today = new Date();
-        const overdues = ghIssues.filter(
-          (i) => i.lifecycle.S === "open" && isAfter(today, getDueDate(i))
-        );
-        const overduePromises = overdues.map((Item) =>
-          dynamo
-            .putItem({
-              Item: {
-                ...Item,
-                lifecycle: {
-                  S: "overdue",
+        const openIssues = ghIssues.filter((i) => i.lifecycle.S === "open");
+        const overduePromises = openIssues
+          .filter((i) => isAfter(today, getDueDate(i)))
+          .map((Item) =>
+            dynamo
+              .putItem({
+                Item: {
+                  ...Item,
+                  lifecycle: {
+                    S: "overdue",
+                  },
                 },
-              },
-              TableName: "FlossContracts",
-              ReturnValues: "ALL_OLD",
-            })
-            .promise()
-        );
+                TableName: "FlossContracts",
+                ReturnValues: "ALL_OLD",
+              })
+              .promise()
+          );
         const successfulRefunds = await Promise.all(overduePromises).then(
           (r) => {
             console.log(`${r.length} contracts were overdue.`);
@@ -203,7 +204,26 @@ ${successfulRefunds.map(
   (refund) =>
     ` - Customer https://dashboard.stripe.com/customers/${refund.customer} refunded ${refund.amount}`
 )}
-              `
+
+Open Issues:
+${openIssues
+  .map((c) => ({ ...parsePriority(c), link: c.link.S }))
+  .map((c) => ({
+    ...c,
+    dueDate: c.dueDate ? new Date(c.dueDate) : today,
+    reward: c.reward || 0,
+  }))
+  .sort(({ dueDate: a, reward: ar }, { dueDate: b, reward: br }) =>
+    a === b ? br - ar : new Date(a).valueOf() - new Date(b).valueOf()
+  )
+  .map(
+    (c) =>
+      `- Issue ${c.link} Expires $${c.reward} In ${differenceInDays(
+        today,
+        c.dueDate
+      )} Days.\n`
+  )}
+`
         );
       })
       .catch((e) =>
