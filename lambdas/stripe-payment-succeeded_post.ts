@@ -1,7 +1,7 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
 import Stripe from "stripe";
-import { activateContract, stripe } from "../utils/lambda";
+import { activateContract, headers, stripe } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
@@ -11,6 +11,13 @@ export const handler = async (event: APIGatewayEvent) => {
   }: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
     event.body || "{}"
   );
+  if (metadata?.skipCallback === "true") {
+    return {
+      statusCode: 204,
+      body: JSON.stringify({}),
+      headers,
+    };
+  }
   switch (mode) {
     case "setup":
       return activateContract({

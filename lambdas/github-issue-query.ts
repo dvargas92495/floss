@@ -219,10 +219,11 @@ ${openIssues
   .map(
     (c) =>
       `- Issue ${c.link} Expires $${c.reward} In ${differenceInDays(
-        today,
-        c.dueDate
-      )} Days.\n`
-  )}
+        c.dueDate,
+        today
+      )} Days.`
+  )
+  .join("\n")}
 `
         );
       })

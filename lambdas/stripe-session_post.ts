@@ -56,10 +56,12 @@ export const handler = async (event: APIGatewayEvent) => {
           quantity: value * multiple,
         },
       ],
+      metadata: {
+        skipCallback: "true",
+      },
       mode: isMonthly ? "subscription" : "payment",
       success_url: `${origin}/${successPath}`,
       cancel_url: `${origin}/${cancelPath}`,
-      
     })
     .then((session) => ({
       statusCode: 200,
