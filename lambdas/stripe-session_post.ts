@@ -6,6 +6,7 @@ export const handler = async (event: APIGatewayEvent) => {
     value,
     isMonthly,
     name,
+    source,
     cancelPath = "checkout?cancel=true",
     successPath = "checkout?success=true",
   }: {
@@ -14,6 +15,7 @@ export const handler = async (event: APIGatewayEvent) => {
     isMonthly: boolean;
     cancelPath: string;
     successPath: string;
+    source: string;
   } = JSON.parse(event.body || "{}");
 
   const reqHeaders = event.headers;
@@ -58,6 +60,7 @@ export const handler = async (event: APIGatewayEvent) => {
       ],
       metadata: {
         skipCallback: "true",
+        source,
       },
       mode: isMonthly ? "subscription" : "payment",
       success_url: `${origin}/${successPath}`,

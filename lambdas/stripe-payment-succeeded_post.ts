@@ -58,7 +58,7 @@ export const handler = async (event: APIGatewayEvent) => {
       "New Checkout Suceeded",
       `Customer https://dashboard.stripe.com/customers/${customer} just paid $${
         (amount_total || 0) / 100
-      }!`
+      } from ${metadata?.source || "an unknown source"}!`
     ).then(() => ({
       statusCode: 204,
       body: JSON.stringify({}),
