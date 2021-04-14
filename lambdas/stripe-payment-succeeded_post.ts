@@ -40,17 +40,27 @@ export const handler = async (event: APIGatewayEvent) => {
       : "";
   if (customer) {
     const customerId = customer as string;
-    await stripe.paymentMethods.attach(payment_method, {
-      customer: customerId,
-    });
     const customerObj = await stripe.customers
       .retrieve(customer as string)
       .then((c) => c as Stripe.Customer);
-    if (!customerObj.name) {
-      const billingName = await stripe.paymentMethods
-        .retrieve(payment_method)
-        .then((p) => p.billing_details.name || "");
-      await stripe.customers.update(customerId, { name: billingName });
+    const updateObj = {
+      ...(customerObj.name
+        ? {}
+        : {
+            name: await stripe.paymentMethods
+              .retrieve(payment_method)
+              .then((p) => p.billing_details.name || ""),
+          }),
+      ...(customerObj.invoice_settings.default_payment_method
+        ? {}
+        : {
+            invoice_settings: {
+              default_payment_method: payment_method,
+            },
+          }),
+    };
+    if (Object.keys(updateObj).length) {
+      await stripe.customers.update(customerId, updateObj);
     }
   }
   if (metadata?.skipCallback === "true") {

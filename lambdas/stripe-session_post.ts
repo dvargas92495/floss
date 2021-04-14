@@ -52,6 +52,9 @@ export const handler = async (event: APIGatewayEvent) => {
   return stripe.checkout.sessions
     .create({
       payment_method_types: ["card"],
+      payment_intent_data: {
+        setup_future_usage: 'off_session',
+      },
       line_items: [
         {
           price: price.id,
