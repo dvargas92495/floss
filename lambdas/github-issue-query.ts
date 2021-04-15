@@ -197,7 +197,7 @@ ${successfulCompletions.map(
         ? `failed to pay due to ${completion.error}`
         : `paid ${completion.paymentAmount}`
     } and debited ${completion.balanceAmount}`
-)}
+).join('\n')}
 
 Successfully refunded ${successfulRefunds.length} contracts.
 ${successfulRefunds.map(
