@@ -126,6 +126,13 @@ functions:
           path: stripe-payment-attached
           method: post
           cors: true
+  stripe-payment-intent-post:
+    handler: out/stripe-payment-intent_post.handler
+    events:
+      - http:
+          path: stripe-payment-intent
+          method: post
+          cors: true
   stripe-payment-succeeded:
     handler: out/stripe-payment-succeeded_post.handler
     events:

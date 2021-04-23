@@ -101,6 +101,7 @@ module "aws-serverless-backend" {
         "stripe-session/post",
         "stripe-setup-intent/post",
         "stripe-payment-attached/post",
+        "stripe-payment-intent/post",
         "stripe-payment-method/delete",
         "stripe-payment-method/put",
         "stripe-payment-methods/get",
