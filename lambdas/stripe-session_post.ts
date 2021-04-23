@@ -52,9 +52,6 @@ export const handler = async (event: APIGatewayEvent) => {
   return stripe.checkout.sessions
     .create({
       payment_method_types: ["card"],
-      payment_intent_data: {
-        setup_future_usage: 'off_session',
-      },
       line_items: [
         {
           price: price.id,
@@ -65,9 +62,16 @@ export const handler = async (event: APIGatewayEvent) => {
         skipCallback: "true",
         source,
       },
-      mode: isMonthly ? "subscription" : "payment",
       success_url: `${origin}/${successPath}`,
       cancel_url: `${origin}/${cancelPath}`,
+      ...(isMonthly
+        ? { mode: "subscription" }
+        : {
+            mode: "payment",
+            payment_intent_data: {
+              setup_future_usage: "off_session",
+            },
+          }),
     })
     .then((session) => ({
       statusCode: 200,

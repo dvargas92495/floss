@@ -6,11 +6,13 @@ export const handler = async (event: APIGatewayEvent) => {
   const {
     priceId,
     quantity = 1,
-    successPath = 'user?cancel=true',
+    successPath = "user?success=true",
+    cancelPath = "user?cancel=true",
     metadata,
   }: {
     priceId: string;
     successPath?: string;
+    cancelPath?: string;
     metadata: Stripe.MetadataParam;
     quantity: number;
   } = JSON.parse(event.body || "{}");
@@ -35,6 +37,7 @@ export const handler = async (event: APIGatewayEvent) => {
         .create({
           customer,
           items: [{ price: priceId, quantity }],
+          metadata,
         })
         .then((s) => ({
           statusCode: 200,
@@ -58,7 +61,7 @@ export const handler = async (event: APIGatewayEvent) => {
           ],
           mode: "subscription",
           success_url: `${origin}/${successPath}`,
-          cancel_url: `${origin}/user?cancel=true`,
+          cancel_url: `${origin}/${cancelPath}`,
           metadata,
         })
         .then((session) => ({
