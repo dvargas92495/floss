@@ -61,6 +61,14 @@ export const handler = async (event: APIGatewayEvent) => {
           : undefined
       ));
 
+  if (!payment_method && !origin) {
+    return {
+      statusCode: 400,
+      body: 'Must specify an origin for checkout callbacks',
+      headers,
+    }
+  }
+
   return payment_method
     ? stripe.setupIntents
         .create({

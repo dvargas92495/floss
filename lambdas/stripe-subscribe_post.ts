@@ -22,7 +22,7 @@ export const handler = async (event: APIGatewayEvent) => {
   if (!customer) {
     return {
       statusCode: 401,
-      body: "No Stripe Customer Found",
+      body: `No Stripe Customer Found with ${reqHeaders.Authorization}`,
       headers,
     };
   }
