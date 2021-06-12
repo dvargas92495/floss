@@ -5,6 +5,7 @@ import {
   getAxiosByGithubLink,
   parsePriority,
   sendMeEmail,
+  ses,
   stripe,
 } from "../utils/lambda";
 import isAfter from "date-fns/isAfter";
@@ -47,6 +48,9 @@ export const handler = () =>
             link: { S: i.html_url },
             lifecycle: { S: i.state },
           }))
+        );
+        const ghIssuesByLink = Object.fromEntries(
+          issues.map((i) => [i.html_url, i])
         );
         const completions = ghIssues.filter((i) => i.lifecycle.S === "closed");
         const completionPromises = completions.map((Item) =>
@@ -149,9 +153,51 @@ export const handler = () =>
               })
               .promise()
           );
-        const successfulRefunds = await Promise.all(overduePromises).then(
+        const { successfulRefunds, overduedContracts } = await Promise.all(overduePromises).then(
           (r) => {
             console.log(`${r.length} contracts were overdue.`);
+            const overduedContracts = r.map((oc) =>
+              ses
+                .sendEmail({
+                  Destination: {
+                    ToAddresses: [
+                      oc.Attributes?.createdBy?.S || "dvargas92495@gmail.com",
+                    ],
+                  },
+                  Message: {
+                    Body: {
+                      Text: {
+                        Charset: "UTF-8",
+                        Data: `The funding for project ${
+                          ghIssuesByLink[oc.Attributes?.link?.S || ""].name
+                        } has expired because the due date was today and it was not completed. We're really sorry, but inbound is really high right now.
+                        
+If you would like to fund the issue on RoamJS again with a new due date, visit https://roamjs.com/queue/${
+                          (oc.Attributes?.link?.S || "")
+                            .split(/\//g)
+                            .slice(-1)[0]
+                        }.
+
+If you would like to work more individually with RoamJS on this project, reach out to support@roamjs.com about our freelancing rates.`,
+                      },
+                    },
+                    Subject: {
+                      Charset: "UTF-8",
+                      Data: `Project Funding Expired for ${
+                        ghIssuesByLink[oc.Attributes?.link?.S || ""].name
+                      }`,
+                    },
+                  },
+                  Source: "no-reply@floss.davidvargas.me",
+                })
+                .promise()
+                .then(() => ({
+                  link: oc.Attributes?.link?.S,
+                  name: ghIssuesByLink[oc.Attributes?.link?.S || ""].name,
+                  by: oc.Attributes?.createdBy?.S,
+                  amount: parsePriority(oc.Attributes).reward
+                }))
+            );
             const contractsToRefund = r.filter((c) =>
               c.Attributes?.stripe.S?.startsWith("pi_")
             );
@@ -168,7 +214,7 @@ export const handler = () =>
                 )
                 .then((pi) => ({
                   amount: pi.amount / 100,
-                  customer: pi.customer,
+                  customer: pi.customer as string,
                 }))
                 .catch((e) => {
                   if (e.raw?.code === "charge_already_refunded") {
@@ -181,23 +227,36 @@ export const handler = () =>
                   }
                 })
             );
-            return Promise.all(stripeRefunds);
+            return Promise.all([
+              Promise.all(stripeRefunds),
+              Promise.all(overduedContracts),
+            ]).then(([successfulRefunds, overduedContracts]) => ({
+              successfulRefunds,
+              overduedContracts,
+            }));
           }
         );
         await sendMeEmail(
           `Floss Nightly Summary`,
           `
 Successfully closed ${successfulCompletions.length} contracts.
-${successfulCompletions.map(
-  (completion) =>
-    ` - Customer https://dashboard.stripe.com/customers/${
-      completion.customer
-    } ${
-      completion.error
-        ? `failed to pay due to ${completion.error}`
-        : `paid ${completion.paymentAmount}`
-    } and debited ${completion.balanceAmount}`
-).join('\n')}
+${successfulCompletions
+  .map(
+    (completion) =>
+      ` - Customer https://dashboard.stripe.com/customers/${
+        completion.customer
+      } ${
+        completion.error
+          ? `failed to pay due to ${completion.error}`
+          : `paid ${completion.paymentAmount}`
+      } and debited ${completion.balanceAmount}`
+  )
+  .join("\n")}
+
+Successfully emailed ${overduedContracts.length} overdued contracts.
+${overduedContracts.map(
+  (oc) => `- Customer ${oc.by}'s project [${oc.name}](${oc.link}) expired $${oc.amount} of funding.`
+)}
 
 Successfully refunded ${successfulRefunds.length} contracts.
 ${successfulRefunds.map(
