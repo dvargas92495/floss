@@ -169,7 +169,7 @@ export const handler = () =>
                       Text: {
                         Charset: "UTF-8",
                         Data: `The funding for project ${
-                          ghIssuesByLink[oc.Attributes?.link?.S || ""].name
+                          ghIssuesByLink[oc.Attributes?.link?.S || ""].title
                         } has expired because the due date was today and it was not completed. We're really sorry, but inbound is really high right now.
                         
 If you would like to fund the issue on RoamJS again with a new due date, visit https://roamjs.com/queue/${
@@ -184,7 +184,7 @@ If you would like to work more individually with RoamJS on this project, reach o
                     Subject: {
                       Charset: "UTF-8",
                       Data: `Project Funding Expired for ${
-                        ghIssuesByLink[oc.Attributes?.link?.S || ""].name
+                        ghIssuesByLink[oc.Attributes?.link?.S || ""].title
                       }`,
                     },
                   },
@@ -193,7 +193,7 @@ If you would like to work more individually with RoamJS on this project, reach o
                 .promise()
                 .then(() => ({
                   link: oc.Attributes?.link?.S,
-                  name: ghIssuesByLink[oc.Attributes?.link?.S || ""].name,
+                  name: ghIssuesByLink[oc.Attributes?.link?.S || ""].title,
                   by: oc.Attributes?.createdBy?.S,
                   amount: parsePriority(oc.Attributes).reward
                 }))
