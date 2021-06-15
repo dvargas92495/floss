@@ -63,6 +63,13 @@ functions:
           path: project
           method: get
           cors: true
+  projects-get:
+    handler: out/projects_get.handler
+    events:
+      - http:
+          path: projects
+          method: get
+          cors: true
   stripe-balance-get:
     handler: out/stripe-balance_get.handler
     events:

@@ -91,6 +91,7 @@ module "aws-serverless-backend" {
         "contract-by-email/get",
         "issue/get",
         "project/get",
+        "projects/get",
         "github-auth/post",
         "name/put",
         "stripe-balance/get",
@@ -195,6 +196,64 @@ resource "aws_dynamodb_table" "basic-dynamodb-table" {
 
   tags = {
     Application = "Floss"
+  }
+}
+
+resource "aws_dynamodb_table" "projects" {
+  name           = "FlossContracts"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "uuid"
+
+  attribute {
+    name = "uuid"
+    type = "S"
+  }
+
+  attribute {
+    name = "tenant"
+    type = "S"
+  }
+
+  attribute {
+    name = "link"
+    type = "S"
+  }
+
+  attribute {
+    name = "funding"
+    type = "N"
+  }
+
+  attribute {
+    name = "customer"
+    type = "S"
+  }
+
+  global_secondary_index {
+    hash_key           = "tenant"
+    name               = "tenant-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
+  global_secondary_index {
+    hash_key           = "customer"
+    name               = "customer-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
+  }
+
+  global_secondary_index {
+    hash_key           = "link"
+    name               = "link-index"
+    non_key_attributes = []
+    projection_type    = "ALL"
+    read_capacity      = 0
+    write_capacity     = 0
   }
 }
 
