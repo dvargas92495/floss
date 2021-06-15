@@ -220,11 +220,6 @@ resource "aws_dynamodb_table" "projects" {
   }
 
   attribute {
-    name = "funding"
-    type = "N"
-  }
-
-  attribute {
     name = "customer"
     type = "S"
   }
