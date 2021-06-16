@@ -59,6 +59,10 @@ variable "auth0_client_secret" {
     type = string
 }
 
+variable "roamjs_floss_token" {
+    type = string
+}
+
 provider "aws" {
     region = "us-east-1"
 }
@@ -91,6 +95,7 @@ module "aws-serverless-backend" {
         "contract-by-email/get",
         "issue/get",
         "project/get",
+        "project-fund/post",
         "projects/get",
         "github-auth/post",
         "name/put",
@@ -501,4 +506,10 @@ resource "github_actions_secret" "auth0_client_secret" {
   repository       = "floss"
   secret_name      = "AUTH0_CLIENT_SECRET"
   plaintext_value  = var.auth0_client_secret
+}
+
+resource "github_actions_secret" "roamjs_floss_token" {
+  repository       = "floss"
+  secret_name      = "ROAMJS_FLOSS_TOKEN"
+  plaintext_value  = var.roamjs_floss_token
 }

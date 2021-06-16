@@ -63,6 +63,13 @@ functions:
           path: project
           method: get
           cors: true
+  project-fund-post:
+    handler: out/project-fund_post.handler
+    events:
+      - http:
+          path: project-fund
+          method: post
+          cors: true
   projects-get:
     handler: out/projects_get.handler
     events:
