@@ -96,13 +96,15 @@ export const handler: APIGatewayProxyHandler = async (event) =>
           .promise()
           .then((r) =>
             Promise.all(
-              (r.Items || []).map((i) =>
-                stripe.customers.retrieve(i.createdBy?.S || "").then((c) => ({
-                  createdBy: (c as Stripe.Customer).name,
-                  funding: Number(i.funding.N),
-                  uuid: i.uuid.S,
-                }))
-              )
+              (r.Items || [])
+                .filter((i) => !i.tenant?.S?.endsWith("_closed"))
+                .map((i) =>
+                  stripe.customers.retrieve(i.customer?.S || "").then((c) => ({
+                    backer: (c as Stripe.Customer).name,
+                    funding: Number(i.funding.N),
+                    uuid: i.uuid.S,
+                  }))
+                )
             )
           ),
       ])
@@ -130,7 +132,7 @@ export const handler: APIGatewayProxyHandler = async (event) =>
           IndexName: "customer-index",
           ExpressionAttributeValues: {
             ":s": {
-              S: `floss_${event.queryStringParameters.customer}`,
+              S: event.queryStringParameters.customer,
             },
           },
         })
@@ -139,6 +141,7 @@ export const handler: APIGatewayProxyHandler = async (event) =>
           Promise.all(
             (r.Items || [])
               .filter((item) => item.link.S?.startsWith("floss_"))
+              .filter((i) => !i.tenant?.S?.endsWith("_closed"))
               .map((item) =>
                 dynamo
                   .getItem({

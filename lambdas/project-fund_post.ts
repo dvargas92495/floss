@@ -48,6 +48,7 @@ export const handler = async (event: APIGatewayEvent) => {
           amount,
           payment_method,
           currency: "usd",
+          metadata: { project: uuid },
         })
         .then((p) => stripe.paymentIntents.confirm(p.id))
         .then(() =>
@@ -87,6 +88,7 @@ export const handler = async (event: APIGatewayEvent) => {
           payment_method_types: ["card"],
           payment_intent_data: {
             setup_future_usage: "off_session",
+            metadata: { project: uuid },
           },
           mode: "payment",
           line_items: [
