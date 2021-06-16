@@ -122,4 +122,59 @@ export const handler: APIGatewayProxyHandler = async (event) =>
             headers,
           };
         })
-    : { statusCode: 400, body: "parameter 'uuid' or 'tenant' are required" };
+    : event.queryStringParameters?.customer
+    ? dynamo
+        .query({
+          TableName: "FlossProjects",
+          KeyConditionExpression: "customer = :s",
+          IndexName: "customer-index",
+          ExpressionAttributeValues: {
+            ":s": {
+              S: `floss_${event.queryStringParameters.uuid}`,
+            },
+          },
+        })
+        .promise()
+        .then((r) =>
+          Promise.all(
+            (r.Items || [])
+              .filter((item) => item.link.S?.startsWith("floss_"))
+              .map((item) =>
+                dynamo
+                  .getItem({
+                    TableName: "FlossProjects",
+                    Key: {
+                      uuid: {
+                        S: item.link?.S?.substring("floss_".length),
+                      },
+                    },
+                  })
+                  .promise()
+                  .then((get) =>
+                    getAxiosByGithubLink(
+                      get.Item?.link?.S?.substring("link_".length)
+                    )
+                  )
+                  .then((get) => ({
+                    funding: item.funding.N,
+                    name: get.name,
+                    uuid: item.uuid.S,
+                  }))
+              )
+          )
+        )
+        .then((projects) => ({
+          headers,
+          statusCode: 200,
+          body: JSON.stringify({ projects }),
+        }))
+        .catch((e) => ({
+          statusCode: 500,
+          body: e.message,
+          headers,
+        }))
+    : {
+        statusCode: 400,
+        body: "parameter 'uuid', 'customer', or 'tenant' are required",
+        headers,
+      };

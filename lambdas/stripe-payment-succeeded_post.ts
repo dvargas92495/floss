@@ -78,7 +78,7 @@ export const handler = async (event: APIGatewayEvent) => {
                 link: { S: `floss_${metadata.project}` },
                 uuid: { S: uuid },
                 funding: { N: `${funding}` },
-                createdBy: { S: customerId },
+                customer: { S: customerId },
                 tenant: { S: r.Item?.tenant?.S },
               },
             })

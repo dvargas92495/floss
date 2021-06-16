@@ -62,7 +62,7 @@ export const handler = async (event: APIGatewayEvent) => {
                     link: { S: `floss_${uuid}` },
                     uuid: { S: childUuid },
                     funding: { N: `${funding}` },
-                    createdBy: { S: customer },
+                    customer: { S: customer },
                     tenant: { S: r.Item?.tenant?.S },
                   },
                 })
