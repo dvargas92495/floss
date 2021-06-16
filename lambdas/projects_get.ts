@@ -78,6 +78,7 @@ export const handler: APIGatewayProxyHandler = async (event) =>
                   name: g.name || g.title,
                   description: g.body.substring(50),
                   body: g.body,
+                  link: r.Item?.link.S?.substring("link_".length),
                   uuid: r.Item?.uuid.S,
                   target: Number(r.Item?.funding?.N),
                 }))
