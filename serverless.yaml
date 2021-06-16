@@ -14,6 +14,13 @@ functions:
           path: aws-check-domain
           method: get
           cors: true
+  contract-delete:
+    handler: out/contract_delete.handler
+    events:
+      - http:
+          path: contract
+          method: delete
+          cors: true
   contract-get:
     handler: out/contract_get.handler
     events:
@@ -62,6 +69,13 @@ functions:
       - http:
           path: project
           method: get
+          cors: true
+  project-fund-delete:
+    handler: out/project-fund_delete.handler
+    events:
+      - http:
+          path: project-fund
+          method: delete
           cors: true
   project-fund-post:
     handler: out/project-fund_post.handler
