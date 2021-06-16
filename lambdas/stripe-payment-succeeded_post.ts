@@ -1,8 +1,10 @@
 import { APIGatewayEvent } from "aws-lambda";
 import axios from "axios";
 import Stripe from "stripe";
+import { v4 } from "uuid";
 import {
   activateContract,
+  dynamo,
   headers,
   sendMeEmail,
   stripe,
@@ -38,6 +40,7 @@ export const handler = async (event: APIGatewayEvent) => {
           .retrieve(subscription as string)
           .then((s) => s.default_payment_method as string)
       : "";
+  const funding = (amount_total || 0) / 100;
   if (customer) {
     const customerId = customer as string;
     const customerObj = await stripe.customers
@@ -62,13 +65,45 @@ export const handler = async (event: APIGatewayEvent) => {
     if (Object.keys(updateObj).length) {
       await stripe.customers.update(customerId, updateObj);
     }
+    if (metadata?.project) {
+      const uuid = v4();
+      return dynamo
+        .getItem({ TableName: "FlossProjects", Key: { uuid: { S: metadata.project } } })
+        .promise()
+        .then((r) =>
+          dynamo
+            .putItem({
+              TableName: "FlossProjects",
+              Item: {
+                link: { S: `floss_${metadata.project}` },
+                uuid: { S: uuid },
+                funding: { N: `${funding}` },
+                createdBy: { S: customerId },
+                tenant: { S: r.Item?.tenant?.S },
+              },
+            })
+            .promise()
+        )
+        .then(() =>
+          sendMeEmail(
+            "New Checkout Suceeded",
+            `Customer ${
+              customerObj.name || updateObj.name
+            } just paid $${funding} for project ${metadata.project}!`
+          ).then(() => ({
+            statusCode: 204,
+            body: JSON.stringify({}),
+            headers,
+          }))
+        );
+    }
   }
   if (metadata?.skipCallback === "true") {
     return sendMeEmail(
       "New Checkout Suceeded",
-      `Customer https://dashboard.stripe.com/customers/${customer} just paid $${
-        (amount_total || 0) / 100
-      } from ${metadata?.source || "an unknown source"}!`
+      `Customer https://dashboard.stripe.com/customers/${customer} just paid $${funding} from ${
+        metadata?.source || "an unknown source"
+      }!`
     ).then(() => ({
       statusCode: 204,
       body: JSON.stringify({}),

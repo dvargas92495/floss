@@ -321,6 +321,10 @@ export const getStripeCustomer = async (Authorization?: string) => {
   }
 };
 
+export const verifyFlossClient = (Authorization: string) => {
+  return `Bearer ${process.env.ROAMJS_FLOSS_TOKEN}` === Authorization
+}
+
 export type GithubModel = {
   html_url: string;
   state: "open" | "closed";
