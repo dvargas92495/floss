@@ -130,7 +130,7 @@ export const handler: APIGatewayProxyHandler = async (event) =>
           IndexName: "customer-index",
           ExpressionAttributeValues: {
             ":s": {
-              S: `floss_${event.queryStringParameters.uuid}`,
+              S: `floss_${event.queryStringParameters.customer}`,
             },
           },
         })
