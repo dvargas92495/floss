@@ -46,7 +46,7 @@ export const handler = async (event: APIGatewayEvent) => {
               "#t": "tenant",
             },
             ExpressionAttributeValues: {
-              ":t": { S: `${d.Item?.tenant}_closed` },
+              ":t": { S: `${d.Item?.tenant?.S}_closed` },
             },
           }).promise()
         )
