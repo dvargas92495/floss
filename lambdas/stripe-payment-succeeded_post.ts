@@ -67,8 +67,12 @@ export const handler = async (event: APIGatewayEvent) => {
     }
     if (metadata?.project) {
       const uuid = v4();
+      const backer = customerObj.name || updateObj.name;
       return dynamo
-        .getItem({ TableName: "FlossProjects", Key: { uuid: { S: metadata.project } } })
+        .getItem({
+          TableName: "FlossProjects",
+          Key: { uuid: { S: metadata.project } },
+        })
         .promise()
         .then((r) =>
           dynamo
@@ -79,6 +83,7 @@ export const handler = async (event: APIGatewayEvent) => {
                 uuid: { S: uuid },
                 funding: { N: `${funding}` },
                 customer: { S: customerId },
+                backer: { S: backer },
                 tenant: { S: r.Item?.tenant?.S },
               },
             })
@@ -87,9 +92,7 @@ export const handler = async (event: APIGatewayEvent) => {
         .then(() =>
           sendMeEmail(
             "New Checkout Suceeded",
-            `Customer ${
-              customerObj.name || updateObj.name
-            } just paid $${funding} for project ${metadata.project}!`
+            `Customer ${backer} just paid $${funding} for project ${metadata.project}!`
           ).then(() => ({
             statusCode: 204,
             body: JSON.stringify({}),

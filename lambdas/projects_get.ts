@@ -100,8 +100,13 @@ export const handler: APIGatewayProxyHandler = async (event) =>
               (r.Items || [])
                 .filter((i) => !i.tenant?.S?.endsWith("_closed"))
                 .map((i) =>
-                  stripe.customers.retrieve(i.customer?.S || "").then((c) => ({
-                    backer: (c as Stripe.Customer).name,
+                  (i.backer?.S
+                    ? Promise.resolve(i.backer?.S)
+                    : stripe.customers
+                        .retrieve(i.customer?.S || "")
+                        .then((c) => (c as Stripe.Customer).name)
+                  ).then((backer) => ({
+                    backer,
                     funding: Number(i.funding.N),
                     uuid: i.uuid.S,
                   }))

@@ -56,18 +56,21 @@ export const handler = async (event: APIGatewayEvent) => {
             .getItem({ TableName: "FlossProjects", Key: { uuid: { S: uuid } } })
             .promise()
             .then((r) =>
-              dynamo
-                .putItem({
-                  TableName: "FlossProjects",
-                  Item: {
-                    link: { S: `floss_${uuid}` },
-                    uuid: { S: childUuid },
-                    funding: { N: `${funding}` },
-                    customer: { S: customer },
-                    tenant: { S: r.Item?.tenant?.S },
-                  },
-                })
-                .promise()
+              stripe.customers.retrieve(customer).then((backer) =>
+                dynamo
+                  .putItem({
+                    TableName: "FlossProjects",
+                    Item: {
+                      link: { S: `floss_${uuid}` },
+                      uuid: { S: childUuid },
+                      funding: { N: `${funding}` },
+                      customer: { S: customer },
+                      backer: { S: (backer as Stripe.Customer).name || "" },
+                      tenant: { S: r.Item?.tenant?.S },
+                    },
+                  })
+                  .promise()
+              )
             )
         )
         .then(() => ({

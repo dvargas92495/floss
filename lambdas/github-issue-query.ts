@@ -153,89 +153,85 @@ export const handler = () =>
               })
               .promise()
           );
-        const { successfulRefunds, overduedContracts } = await Promise.all(overduePromises).then(
-          (r) => {
-            console.log(`${r.length} contracts were overdue.`);
-            const overduedContracts = r.map((oc) =>
-              ses
-                .sendEmail({
-                  Destination: {
-                    ToAddresses: [
-                      oc.Attributes?.createdBy?.S || "dvargas92495@gmail.com",
-                    ],
-                  },
-                  Message: {
-                    Body: {
-                      Text: {
-                        Charset: "UTF-8",
-                        Data: `The funding for project ${
-                          ghIssuesByLink[oc.Attributes?.link?.S || ""].title
-                        } has expired because the due date was today and it was not completed. We're really sorry, but inbound is really high right now.
+        const { successfulRefunds, overduedContracts } = await Promise.all(
+          overduePromises
+        ).then((r) => {
+          console.log(`${r.length} contracts were overdue.`);
+          const overduedContracts = r.map((oc) =>
+            ses
+              .sendEmail({
+                Destination: {
+                  ToAddresses: [
+                    oc.Attributes?.createdBy?.S || "dvargas92495@gmail.com",
+                  ],
+                },
+                Message: {
+                  Body: {
+                    Text: {
+                      Charset: "UTF-8",
+                      Data: `The funding for project ${
+                        ghIssuesByLink[oc.Attributes?.link?.S || ""].title
+                      } has expired because the due date was today and it was not completed. We're really sorry, but inbound is really high right now.
                         
 If you would like to fund the issue on RoamJS again with a new due date, visit https://roamjs.com/queue/${
-                          (oc.Attributes?.link?.S || "")
-                            .split(/\//g)
-                            .slice(-1)[0]
-                        }.
+                        (oc.Attributes?.link?.S || "").split(/\//g).slice(-1)[0]
+                      }.
 
 If you would like to work more individually with RoamJS on this project, reach out to support@roamjs.com about our freelancing rates.`,
-                      },
-                    },
-                    Subject: {
-                      Charset: "UTF-8",
-                      Data: `Project Funding Expired for ${
-                        ghIssuesByLink[oc.Attributes?.link?.S || ""].title
-                      }`,
                     },
                   },
-                  Source: "no-reply@floss.davidvargas.me",
-                })
-                .promise()
-                .then(() => ({
-                  link: oc.Attributes?.link?.S,
-                  name: ghIssuesByLink[oc.Attributes?.link?.S || ""].title,
-                  by: oc.Attributes?.createdBy?.S,
-                  amount: parsePriority(oc.Attributes).reward
-                }))
-            );
-            const contractsToRefund = r.filter((c) =>
-              c.Attributes?.stripe.S?.startsWith("pi_")
-            );
-            console.log(
-              `Need to refund ${contractsToRefund.length} contracts.`
-            );
-            const stripeRefunds = contractsToRefund.map((c) =>
-              stripe.refunds
-                .create({
-                  payment_intent: c.Attributes?.stripe.S,
-                })
-                .then((sr) =>
-                  stripe.paymentIntents.retrieve(sr.payment_intent as string)
-                )
-                .then((pi) => ({
-                  amount: pi.amount / 100,
-                  customer: pi.customer as string,
-                }))
-                .catch((e) => {
-                  if (e.raw?.code === "charge_already_refunded") {
-                    console.error(
-                      `${e.raw.message} for Contract ${c.Attributes?.uuid.S}`
-                    );
-                    return { amount: 0, customer: "" };
-                  } else {
-                    throw new Error(e);
-                  }
-                })
-            );
-            return Promise.all([
-              Promise.all(stripeRefunds),
-              Promise.all(overduedContracts),
-            ]).then(([successfulRefunds, overduedContracts]) => ({
-              successfulRefunds,
-              overduedContracts,
-            }));
-          }
-        );
+                  Subject: {
+                    Charset: "UTF-8",
+                    Data: `Project Funding Expired for ${
+                      ghIssuesByLink[oc.Attributes?.link?.S || ""].title
+                    }`,
+                  },
+                },
+                Source: "no-reply@floss.davidvargas.me",
+              })
+              .promise()
+              .then(() => ({
+                link: oc.Attributes?.link?.S,
+                name: ghIssuesByLink[oc.Attributes?.link?.S || ""].title,
+                by: oc.Attributes?.createdBy?.S,
+                amount: parsePriority(oc.Attributes).reward,
+              }))
+          );
+          const contractsToRefund = r.filter((c) =>
+            c.Attributes?.stripe.S?.startsWith("pi_")
+          );
+          console.log(`Need to refund ${contractsToRefund.length} contracts.`);
+          const stripeRefunds = contractsToRefund.map((c) =>
+            stripe.refunds
+              .create({
+                payment_intent: c.Attributes?.stripe.S,
+              })
+              .then((sr) =>
+                stripe.paymentIntents.retrieve(sr.payment_intent as string)
+              )
+              .then((pi) => ({
+                amount: pi.amount / 100,
+                customer: pi.customer as string,
+              }))
+              .catch((e) => {
+                if (e.raw?.code === "charge_already_refunded") {
+                  console.error(
+                    `${e.raw.message} for Contract ${c.Attributes?.uuid.S}`
+                  );
+                  return { amount: 0, customer: "" };
+                } else {
+                  throw new Error(e);
+                }
+              })
+          );
+          return Promise.all([
+            Promise.all(stripeRefunds),
+            Promise.all(overduedContracts),
+          ]).then(([successfulRefunds, overduedContracts]) => ({
+            successfulRefunds,
+            overduedContracts,
+          }));
+        });
         await sendMeEmail(
           `Floss Nightly Summary`,
           `
@@ -255,7 +251,8 @@ ${successfulCompletions
 
 Successfully emailed ${overduedContracts.length} overdued contracts.
 ${overduedContracts.map(
-  (oc) => `- Customer ${oc.by}'s project [${oc.name}](${oc.link}) expired $${oc.amount} of funding.`
+  (oc) =>
+    `- Customer ${oc.by}'s project [${oc.name}](${oc.link}) expired $${oc.amount} of funding.`
 )}
 
 Successfully refunded ${successfulRefunds.length} contracts.
