@@ -104,9 +104,13 @@ export const handler = async (event: APIGatewayEvent) => {
   if (metadata?.skipCallback === "true") {
     return sendMeEmail(
       "New Checkout Suceeded",
-      `Customer https://dashboard.stripe.com/customers/${customer} just paid $${funding} from ${
-        metadata?.source || "an unknown source"
-      }!`
+      `Customer https://dashboard.stripe.com/customers/${customer} ${
+        funding
+          ? `just paid $${funding} from ${
+              metadata?.source || "an unknown source"
+            }!`
+          : "just setup a new card."
+      }`
     ).then(() => ({
       statusCode: 204,
       body: JSON.stringify({}),
