@@ -133,6 +133,13 @@ functions:
           path: stripe-payment-method
           method: delete
           cors: true
+  stripe-payment-method-post:
+    handler: out/stripe-payment-method_post.handler
+    events:
+      - http:
+          path: stripe-payment-method
+          method: post
+          cors: true
   stripe-payment-method-put:
     handler: out/stripe-payment-method_put.handler
     events:
