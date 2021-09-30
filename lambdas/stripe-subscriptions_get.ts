@@ -21,7 +21,7 @@ export const handler = async (event: APIGatewayEvent) => {
         return r.data.flatMap((s) =>
           s.items.data.map((i) => ({
             ...productMap[i.price.product as string],
-            id: i.id,
+            id: s.id,
             amount: i.price.transform_quantity
               ? ((i.quantity || 1) * (i.price.unit_amount || 1)) /
                 100 /
