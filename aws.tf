@@ -88,6 +88,7 @@ module "aws-serverless-backend" {
         "auth-user-metadata/get",
         "auth-user-metadata/put",
         "aws-check-domain/get",
+        "checkout-session-completed/post",
         "contract/delete",
         "contract/get",
         "contract/post",
