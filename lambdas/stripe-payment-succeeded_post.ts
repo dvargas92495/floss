@@ -12,20 +12,26 @@ import {
 
 export const handler = async (event: APIGatewayEvent) => {
   const {
-    data: {
-      object: {
-        payment_intent,
-        mode,
-        metadata,
-        customer,
-        setup_intent,
-        subscription,
-        amount_total,
-      },
-    },
+    data: { object },
   }: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
     event.body || "{}"
   );
+  const {
+    payment_intent,
+    mode,
+    metadata,
+    customer,
+    setup_intent,
+    subscription,
+    amount_total,
+  } = object;
+  if (metadata?.callback) {
+    return axios.post(metadata?.callback, { session: object }).then((r) => ({
+      statusCode: r.status,
+      body: JSON.stringify(r.data),
+      headers: r.headers,
+    }));
+  }
   const payment_method =
     mode === "payment"
       ? await stripe.paymentIntents
