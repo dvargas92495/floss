@@ -11,9 +11,7 @@ import {
 } from "../utils/lambda";
 
 export const handler = async (event: APIGatewayEvent) => {
-  const {
-    data: { object },
-  }: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
+  const body: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
     event.body || "{}"
   );
   const {
@@ -24,13 +22,15 @@ export const handler = async (event: APIGatewayEvent) => {
     setup_intent,
     subscription,
     amount_total,
-  } = object;
+  } = body.data.object;
   if (metadata?.callback) {
-    return axios.post(metadata?.callback, { session: object }).then((r) => ({
-      statusCode: r.status,
-      body: JSON.stringify(r.data),
-      headers: r.headers,
-    }));
+    return axios
+      .post(metadata?.callback, body, { headers: event.headers })
+      .then((r) => ({
+        statusCode: r.status,
+        body: JSON.stringify(r.data),
+        headers: r.headers,
+      }));
   }
   const payment_method =
     mode === "payment"
