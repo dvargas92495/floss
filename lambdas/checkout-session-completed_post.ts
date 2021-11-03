@@ -13,7 +13,7 @@ export const handler = async (event: APIGatewayEvent) => {
         headers: Object.fromEntries(
           Object.entries(event.headers)
             .filter(([h]) => h.toLowerCase() !== "host")
-            .concat(["stripe-body", event.body || "{}"])
+            .concat([["stripe-body", event.body || "{}"]])
         ),
       })
       .then((r) => ({
