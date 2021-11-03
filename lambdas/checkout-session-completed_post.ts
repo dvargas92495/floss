@@ -9,7 +9,13 @@ export const handler = async (event: APIGatewayEvent) => {
   const { metadata } = body.data.object;
   if (metadata?.callback) {
     return axios
-      .post(metadata?.callback, body, { headers: event.headers })
+      .post(metadata.callback, body, {
+        headers: Object.fromEntries(
+          Object.entries(event.headers).filter(
+            ([h]) => h.toLowerCase() !== "host"
+          )
+        ),
+      })
       .then((r) => ({
         statusCode: r.status,
         body: JSON.stringify(r.data),
