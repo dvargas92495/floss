@@ -11,9 +11,9 @@ export const handler = async (event: APIGatewayEvent) => {
     return axios
       .post(metadata.callback, body, {
         headers: Object.fromEntries(
-          Object.entries(event.headers).filter(
-            ([h]) => h.toLowerCase() !== "host"
-          )
+          Object.entries(event.headers)
+            .filter(([h]) => h.toLowerCase() !== "host")
+            .concat(["stripe-body", event.body || "{}"])
         ),
       })
       .then((r) => ({
@@ -23,9 +23,12 @@ export const handler = async (event: APIGatewayEvent) => {
       }))
       .catch((e: AxiosError) => ({
         statusCode: e.response?.status || 500,
-        body: typeof e.response?.data === 'object' ? JSON.stringify(e.response?.data) : e.response?.data,
+        body:
+          typeof e.response?.data === "object"
+            ? JSON.stringify(e.response?.data)
+            : e.response?.data,
         headers: e.response?.headers || {},
-      }));;
+      }));
   }
   return {
     statusCode: 200,
