@@ -9,8 +9,13 @@ import {
   sendMeEmail,
   stripe,
 } from "../utils/lambda";
+import { handler as checkoutHandler, DEFAULT_BODY } from "./checkout-session-completed_post";
 
 export const handler = async (event: APIGatewayEvent) => {
+  const checkoutResponse = await checkoutHandler(event);
+  if (checkoutResponse.body !== DEFAULT_BODY) {
+    return checkoutResponse;
+  }
   const body: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
     event.body || "{}"
   );
@@ -23,15 +28,6 @@ export const handler = async (event: APIGatewayEvent) => {
     subscription,
     amount_total,
   } = body.data.object;
-  if (metadata?.callback) {
-    return axios
-      .post(metadata?.callback, body, { headers: event.headers })
-      .then((r) => ({
-        statusCode: r.status,
-        body: JSON.stringify(r.data),
-        headers: r.headers,
-      }));
-  }
   const payment_method =
     mode === "payment"
       ? await stripe.paymentIntents

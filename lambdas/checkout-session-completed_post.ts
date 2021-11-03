@@ -2,6 +2,8 @@ import { APIGatewayEvent } from "aws-lambda";
 import axios, { AxiosError } from "axios";
 import Stripe from "stripe";
 
+export const DEFAULT_BODY = "No callback to proxy";
+
 export const handler = async (event: APIGatewayEvent) => {
   const body: { data: { object: Stripe.Checkout.Session } } = JSON.parse(
     event.body || "{}"
@@ -38,6 +40,6 @@ export const handler = async (event: APIGatewayEvent) => {
   }
   return {
     statusCode: 200,
-    body: "No callback to proxy",
+    body: DEFAULT_BODY,
   };
 };
