@@ -1,5 +1,5 @@
 import { APIGatewayEvent } from "aws-lambda";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Stripe from "stripe";
 
 export const handler = async (event: APIGatewayEvent) => {
@@ -20,7 +20,12 @@ export const handler = async (event: APIGatewayEvent) => {
         statusCode: r.status,
         body: JSON.stringify(r.data),
         headers: r.headers,
-      }));
+      }))
+      .catch((e: AxiosError) => ({
+        statusCode: e.response?.status || 500,
+        body: typeof e.response?.data === 'object' ? JSON.stringify(e.response?.data) : e.response?.data,
+        headers: e.response?.headers || {},
+      }));;
   }
   return {
     statusCode: 200,
