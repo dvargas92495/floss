@@ -9,27 +9,29 @@ export const handler = async (event: APIGatewayEvent) => {
   const { metadata } = body.data.object;
   if (metadata?.callback) {
     return axios
-      .post(metadata.callback, body, {
-        headers: Object.fromEntries(
-          Object.entries(event.headers)
-            .filter(([h]) => h.toLowerCase() !== "host")
-            .concat([["stripe-body", event.body || "{}"]])
-        ),
-      })
+      .post(
+        metadata.callback,
+        { body: event.body },
+        {
+          headers: Object.fromEntries(
+            Object.entries(event.headers).filter(
+              ([h]) => h.toLowerCase() !== "host"
+            )
+          ),
+        }
+      )
       .then((r) => ({
         statusCode: r.status,
         body: JSON.stringify(r.data),
         headers: r.headers,
       }))
       .catch((e: AxiosError) => {
-        console.error(e.message);
-        console.error(e.response?.data);
         return {
           statusCode: e.response?.status || 500,
           body:
             typeof e.response?.data === "object"
               ? JSON.stringify(e.response?.data)
-              : e.response?.data,
+              : e.response?.data || e.message,
           headers: e.response?.headers || {},
         };
       });
