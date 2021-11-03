@@ -21,14 +21,18 @@ export const handler = async (event: APIGatewayEvent) => {
         body: JSON.stringify(r.data),
         headers: r.headers,
       }))
-      .catch((e: AxiosError) => ({
-        statusCode: e.response?.status || 500,
-        body:
-          typeof e.response?.data === "object"
-            ? JSON.stringify(e.response?.data)
-            : e.response?.data,
-        headers: e.response?.headers || {},
-      }));
+      .catch((e: AxiosError) => {
+        console.error(e.message);
+        console.error(e.response?.data);
+        return {
+          statusCode: e.response?.status || 500,
+          body:
+            typeof e.response?.data === "object"
+              ? JSON.stringify(e.response?.data)
+              : e.response?.data,
+          headers: e.response?.headers || {},
+        };
+      });
   }
   return {
     statusCode: 200,
