@@ -12,6 +12,10 @@ terraform {
       source = "integrations/github"
       version = "4.2.0"
     }
+    aws = {
+      source = "hashicorp/aws"
+      version = "3.74.2"
+    }
   }
 }
 
@@ -302,42 +306,6 @@ resource "aws_dynamodb_table" "user-table" {
   tags = {
     Application = "Floss"
   }
-}
-
-data "aws_iam_role" "lambda_role" {
-  name = "floss-lambda-execution"
-}
-
-resource "aws_lambda_function" "github_issue_query" {
-  function_name    = "floss_github-issue-query"
-  role             = data.aws_iam_role.lambda_role.arn
-  handler          = "github-issue-query.handler"
-  runtime          = "nodejs12.x"
-  filename         = "dummy.zip"
-  publish          = false
-  timeout          = 30
-
-  tags = {
-    Application = "Floss"
-  }
-}
- 
-resource "aws_cloudwatch_event_rule" "trigger_query" {
-  name        = "FlossGithubIssueQuery"
-  description = "Triggers every day at midnight, querying issues from active contracts"
-  schedule_expression = "cron(0 4 ? * * *)"
-}
-
-resource "aws_lambda_permission" "allow_query" {
-  action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.github_issue_query.arn
-  principal     = "events.amazonaws.com"
-  source_arn    = aws_cloudwatch_event_rule.trigger_query.arn
-}
-
-resource "aws_cloudwatch_event_target" "trigger_scheduler" {
-  rule      = aws_cloudwatch_event_rule.trigger_query.name
-  arn       = aws_lambda_function.github_issue_query.arn
 }
 
 data "aws_iam_policy_document" "deploy_policy" {
