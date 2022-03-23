@@ -307,26 +307,6 @@ resource "aws_dynamodb_table" "user-table" {
     Application = "Floss"
   }
 }
-
-data "aws_iam_policy_document" "deploy_policy" {
-    statement {
-      actions = [
-        "lambda:UpdateFunctionCode"
-      ]
-
-      resources = [aws_lambda_function.github_issue_query.arn]
-    }
-}
-
-data "aws_iam_user" "deploy_lambda" {
-  user_name  = "floss-lambda"
-}
-
-resource "aws_iam_user_policy" "deploy_lambda" {
-  user   = data.aws_iam_user.deploy_lambda.user_name
-  policy = data.aws_iam_policy_document.deploy_policy.json
-}
-
 resource "aws_ses_domain_identity" "domain" {
   domain = "floss.davidvargas.me"
 }
